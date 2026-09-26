@@ -16,5 +16,7 @@ class ThemeColorsTest {
         assertEquals(Color(0xFF06B6D4), CyanAccent)
         assertEquals(Color(0xFFFBBF24), GoldStar)
         assertEquals(Color(0xFFF8FAFC), TextPrimary)
+        assertEquals(Color(0xFFEF4444), ErrorRed)
+        assertEquals(Color(0xFFFCA5A5), ErrorRedLight)
     }
 }

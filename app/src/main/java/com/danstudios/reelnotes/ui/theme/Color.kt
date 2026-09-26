@@ -32,3 +32,8 @@ val TutorialColor = Color(0xFF06B6D4)
 val TravelColor = Color(0xFF3B82F6)
 val ProductColor = Color(0xFFEC4899)
 val GeneralColor = Color(0xFF94A3B8)
+
+// Error & Alert Colors
+val ErrorRed = Color(0xFFEF4444)
+val ErrorRedLight = Color(0xFFFCA5A5)
+

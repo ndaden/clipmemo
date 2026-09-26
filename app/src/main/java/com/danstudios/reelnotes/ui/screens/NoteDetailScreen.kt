@@ -526,6 +526,8 @@ fun NoteDetailScreen(
                     }
                     Spacer(modifier = Modifier.height(32.dp))
                 }
+
+                Spacer(modifier = Modifier.navigationBarsPadding().height(24.dp))
             }
         }
 
@@ -581,7 +583,7 @@ fun NoteDetailScreen(
                 GlassActionButton(
                     icon = Icons.Default.Delete,
                     contentDescription = "Supprimer",
-                    tint = Color(0xFFEF4444),
+                    tint = ErrorRed,
                     onClick = { showDeleteConfirm = true }
                 )
             }
@@ -616,7 +618,7 @@ fun NoteDetailScreen(
                         viewModel.deleteNote(currentNote.id)
                         onBack()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                    colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text("Supprimer", fontWeight = FontWeight.Bold, color = Color.White)

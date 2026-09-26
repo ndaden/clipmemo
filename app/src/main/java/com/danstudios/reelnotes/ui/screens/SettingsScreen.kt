@@ -175,21 +175,21 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFEF4444).copy(alpha = 0.12f))
-                                .border(1.dp, Color(0xFFEF4444).copy(alpha = 0.25f), RoundedCornerShape(8.dp))
+                                .background(ErrorRed.copy(alpha = 0.12f))
+                                .border(1.dp, ErrorRed.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
                                 .padding(10.dp)
                         ) {
                             Icon(
                                 Icons.Default.Warning,
                                 contentDescription = null,
-                                tint = Color(0xFFEF4444),
+                                tint = ErrorRed,
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Attention : les clés Google AI Studio débutent normalement par 'AIzaSy'.",
                                 fontSize = 12.sp,
-                                color = Color(0xFFFCA5A5)
+                                color = ErrorRedLight
                             )
                         }
                     }
@@ -205,11 +205,11 @@ fun SettingsScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (isSuccess) EmeraldSuccess.copy(alpha = 0.12f) else Color(0xFFEF4444).copy(alpha = 0.12f)
+                                    if (isSuccess) EmeraldSuccess.copy(alpha = 0.12f) else ErrorRed.copy(alpha = 0.12f)
                                 )
                                 .border(
                                     1.dp,
-                                    if (isSuccess) EmeraldSuccess.copy(alpha = 0.3f) else Color(0xFFEF4444).copy(alpha = 0.3f),
+                                    if (isSuccess) EmeraldSuccess.copy(alpha = 0.3f) else ErrorRed.copy(alpha = 0.3f),
                                     RoundedCornerShape(8.dp)
                                 )
                                 .padding(10.dp)
@@ -217,14 +217,14 @@ fun SettingsScreen(
                             Icon(
                                 imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Warning,
                                 contentDescription = null,
-                                tint = if (isSuccess) EmeraldLight else Color(0xFFEF4444),
+                                tint = if (isSuccess) EmeraldLight else ErrorRed,
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = msg,
                                 fontSize = 13.sp,
-                                color = if (isSuccess) EmeraldLight else Color(0xFFFCA5A5)
+                                color = if (isSuccess) EmeraldLight else ErrorRedLight
                             )
                         }
                     }
