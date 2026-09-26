@@ -20,6 +20,8 @@ import com.danstudios.reelnotes.ui.navigation.Screen
 import com.danstudios.reelnotes.ui.screens.NoteDetailScreen
 import com.danstudios.reelnotes.ui.screens.NotesListScreen
 import com.danstudios.reelnotes.ui.screens.SettingsScreen
+import androidx.activity.SystemBarStyle
+import com.danstudios.reelnotes.ui.theme.DarkBackground
 import com.danstudios.reelnotes.ui.theme.ReelNotesTheme
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -33,7 +35,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+        )
 
         handleIncomingIntent(intent)
 
@@ -41,7 +46,7 @@ class MainActivity : ComponentActivity() {
             ReelNotesTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = DarkBackground
                 ) {
                     val navController = rememberNavController()
 

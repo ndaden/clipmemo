@@ -4,8 +4,11 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,6 +18,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
@@ -29,7 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.danstudios.reelnotes.ui.components.InstagramLoginDialog
+import com.danstudios.reelnotes.ui.theme.*
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,14 +71,29 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        containerColor = DarkBackground,
         topBar = {
             TopAppBar(
-                title = { Text("Paramètres") },
+                title = {
+                    Text(
+                        text = "Paramètres",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Retour",
+                            tint = TextPrimary
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = DarkBackground
+                )
             )
         }
     ) { innerPadding ->
@@ -81,31 +102,35 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             // Section 1: Gemini AI
             Text(
                 text = "Intelligence Artificielle Google Gemini",
-                style = MaterialTheme.typography.titleMedium,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = NeonVioletLight
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurface)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Grâce à Gemini 3.6 Flash Multimodal, l'application écoute la voix du Reel, analyse les images et extrait automatiquement recettes, ingrédients précis et étapes pas à pas.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        lineHeight = 18.sp
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     OutlinedTextField(
                         value = apiKeyInput,
@@ -113,52 +138,65 @@ fun SettingsScreen(
                             apiKeyInput = it
                             keyTestResult = null
                         },
-                        label = { Text("Clé API Google Gemini") },
-                        placeholder = { Text("AIzaSy... ou AQ...") },
+                        label = { Text("Clé API Google Gemini", color = TextSecondary) },
+                        placeholder = { Text("AIzaSy... ou AQ...", color = TextPlaceholder) },
                         singleLine = true,
-                        leadingIcon = { Icon(Icons.Default.Key, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Key, contentDescription = null, tint = NeonVioletLight)
+                        },
                         visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { showPassword = !showPassword }) {
                                 Icon(
                                     imageVector = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = if (showPassword) "Masquer" else "Afficher"
+                                    contentDescription = if (showPassword) "Masquer" else "Afficher",
+                                    tint = TextSecondary
                                 )
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = DarkSurfaceElevated,
+                            unfocusedContainerColor = DarkSurfaceElevated,
+                            focusedBorderColor = NeonViolet,
+                            unfocusedBorderColor = DarkBorder,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary,
+                            cursorColor = NeonVioletLight
+                        )
                     )
 
                     // Notice if key format is unusual
                     if (apiKeyInput.isNotBlank() && !apiKeyInput.startsWith("AIzaSy") && !apiKeyInput.startsWith("AQ.") && keyTestResult?.isSuccess != true) {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f))
-                                .padding(8.dp)
+                                .background(Color(0xFFEF4444).copy(alpha = 0.12f))
+                                .border(1.dp, Color(0xFFEF4444).copy(alpha = 0.25f), RoundedCornerShape(8.dp))
+                                .padding(10.dp)
                         ) {
                             Icon(
                                 Icons.Default.Warning,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
+                                tint = Color(0xFFEF4444),
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Attention : les clés Google AI Studio débutent normalement par 'AIzaSy'.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.error
+                                fontSize = 12.sp,
+                                color = Color(0xFFFCA5A5)
                             )
                         }
                     }
 
                     // Test result banner
                     keyTestResult?.let { result ->
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         val isSuccess = result.isSuccess
                         val msg = if (isSuccess) result.getOrNull() ?: "" else result.exceptionOrNull()?.message ?: ""
                         Row(
@@ -167,26 +205,31 @@ fun SettingsScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (isSuccess) Color(0xFFE8F5E9) else MaterialTheme.colorScheme.errorContainer
+                                    if (isSuccess) EmeraldSuccess.copy(alpha = 0.12f) else Color(0xFFEF4444).copy(alpha = 0.12f)
                                 )
-                                .padding(8.dp)
+                                .border(
+                                    1.dp,
+                                    if (isSuccess) EmeraldSuccess.copy(alpha = 0.3f) else Color(0xFFEF4444).copy(alpha = 0.3f),
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(10.dp)
                         ) {
                             Icon(
                                 imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Warning,
                                 contentDescription = null,
-                                tint = if (isSuccess) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error,
+                                tint = if (isSuccess) EmeraldLight else Color(0xFFEF4444),
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = msg,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (isSuccess) Color(0xFF1B5E20) else MaterialTheme.colorScheme.onErrorContainer
+                                fontSize = 13.sp,
+                                color = if (isSuccess) EmeraldLight else Color(0xFFFCA5A5)
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -206,14 +249,19 @@ fun SettingsScreen(
                                     Toast.makeText(context, "Veuillez entrer une clé d'abord", Toast.LENGTH_SHORT).show()
                                 }
                             },
-                            enabled = !isTestingKey && apiKeyInput.isNotBlank()
+                            enabled = !isTestingKey && apiKeyInput.isNotBlank(),
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, DarkBorder),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = TextPrimary
+                            )
                         ) {
                             if (isTestingKey) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = NeonViolet)
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Test...")
+                                Text("Test...", fontSize = 13.sp)
                             } else {
-                                Text("Tester la clé")
+                                Text("Tester la clé", fontSize = 13.sp)
                             }
                         }
 
@@ -221,9 +269,14 @@ fun SettingsScreen(
                             onClick = {
                                 viewModel.updateApiKey(apiKeyInput.trim())
                                 Toast.makeText(context, "Clé API enregistrée !", Toast.LENGTH_SHORT).show()
-                            }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = NeonViolet,
+                                contentColor = Color.White
+                            )
                         ) {
-                            Text("Enregistrer")
+                            Text("Enregistrer", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
 
@@ -236,9 +289,18 @@ fun SettingsScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Obtenir une clé Gemini gratuite (Google AI Studio)")
+                        Icon(
+                            Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = null,
+                            tint = NeonVioletLight,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Obtenir une clé Gemini gratuite (Google AI Studio)",
+                            color = NeonVioletLight,
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
@@ -248,53 +310,65 @@ fun SettingsScreen(
             // Section 2: Instagram Session (Optional)
             Text(
                 text = "Session Instagram (Optionnel)",
-                style = MaterialTheme.typography.titleMedium,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = NeonVioletLight
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurface)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Certains Reels (notamment avec restrictions d'âge ou provenant de comptes privés) ne sont pas accessibles sans compte Instagram.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        lineHeight = 18.sp
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
+                    // Status box
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(DarkSurfaceElevated)
+                            .border(1.dp, DarkBorder, RoundedCornerShape(12.dp))
+                            .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = if (isInstagramLoggedIn) Icons.Default.LockOpen else Icons.Default.Lock,
                             contentDescription = null,
-                            tint = if (isInstagramLoggedIn) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (isInstagramLoggedIn) EmeraldLight else TextSecondary,
+                            modifier = Modifier.size(22.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = if (isInstagramLoggedIn) "Connecté à Instagram" else "Non connecté",
                                 fontWeight = FontWeight.SemiBold,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (isInstagramLoggedIn) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurface
+                                fontSize = 14.sp,
+                                color = if (isInstagramLoggedIn) EmeraldLight else TextPrimary
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = if (isInstagramLoggedIn) "Tous les Reels peuvent être analysés" else "Seuls les Reels publics sans restriction sont accessibles",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                fontSize = 11.sp,
+                                color = TextTertiary
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         if (isInstagramLoggedIn) {
@@ -302,15 +376,24 @@ fun SettingsScreen(
                                 onClick = {
                                     viewModel.logoutInstagram()
                                     Toast.makeText(context, "Déconnexion effectuée", Toast.LENGTH_SHORT).show()
-                                }
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, DarkBorder),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
                             ) {
-                                Text("Se déconnecter")
+                                Text("Se déconnecter", fontSize = 13.sp)
                             }
                         } else {
-                            FilledTonalButton(
-                                onClick = { showLoginDialog = true }
+                            Button(
+                                onClick = { showLoginDialog = true },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = DarkSurfaceElevated,
+                                    contentColor = NeonVioletLight
+                                ),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, DarkBorder)
                             ) {
-                                Text("Se connecter à Instagram")
+                                Text("Se connecter à Instagram", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -319,44 +402,78 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section 3: Langue
+            // Section 3: Langue des résumés
             Text(
                 text = "Langue des résumés",
-                style = MaterialTheme.typography.titleMedium,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = NeonVioletLight
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurface)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (preferredLanguage == "fr") DarkSurfaceElevated else Color.Transparent)
+                            .clickable { viewModel.updateLanguage("fr") }
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = preferredLanguage == "fr",
-                            onClick = { viewModel.updateLanguage("fr") }
+                            onClick = { viewModel.updateLanguage("fr") },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = NeonViolet,
+                                unselectedColor = TextSecondary
+                            )
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Français (par défaut)")
+                        Text(
+                            text = "Français (par défaut)",
+                            fontSize = 14.sp,
+                            fontWeight = if (preferredLanguage == "fr") FontWeight.Bold else FontWeight.Normal,
+                            color = TextPrimary
+                        )
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (preferredLanguage == "en") DarkSurfaceElevated else Color.Transparent)
+                            .clickable { viewModel.updateLanguage("en") }
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = preferredLanguage == "en",
-                            onClick = { viewModel.updateLanguage("en") }
+                            onClick = { viewModel.updateLanguage("en") },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = NeonViolet,
+                                unselectedColor = TextSecondary
+                            )
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("English")
+                        Text(
+                            text = "English",
+                            fontSize = 14.sp,
+                            fontWeight = if (preferredLanguage == "en") FontWeight.Bold else FontWeight.Normal,
+                            color = TextPrimary
+                        )
                     }
                 }
             }
@@ -366,35 +483,52 @@ fun SettingsScreen(
             // Section 4: Données & Démo
             Text(
                 text = "Données & Démonstration",
-                style = MaterialTheme.typography.titleMedium,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = NeonVioletLight
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurface)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Ajoutez des exemples de notes pré-remplies (recette de pâtes crémeuses, routine sportive, astuces tech) pour tester l'application.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        lineHeight = 18.sp
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    FilledTonalButton(
+                    Button(
                         onClick = {
                             viewModel.reloadSampleData()
                             Toast.makeText(context, "Exemples ajoutés avec succès !", Toast.LENGTH_SHORT).show()
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = DarkSurfaceElevated,
+                            contentColor = NeonVioletLight
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, DarkBorder)
                     ) {
-                        Text("Recharger les notes d'exemples")
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = null,
+                            tint = NeonVioletLight,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Recharger les notes d'exemples", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                 }
             }
@@ -404,32 +538,39 @@ fun SettingsScreen(
             // Section 5: À propos
             Text(
                 text = "À propos de ReelNotes",
-                style = MaterialTheme.typography.titleMedium,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = NeonVioletLight
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurface)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "ReelNotes v1.1.0",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Application Android conçue pour transformer facilement les Reels Instagram en fiches de recettes, tutoriels et notes pratiques avec analyse IA multimodale audio/vidéo.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        lineHeight = 17.sp
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

@@ -51,9 +51,13 @@ class ReelNotesViewModel(
     private val _newlyCreatedNoteId = MutableSharedFlow<Long>()
     val newlyCreatedNoteId: SharedFlow<Long> = _newlyCreatedNoteId.asSharedFlow()
 
+    // All notes unfiltered for counts
+    val allNotes: StateFlow<List<ReelNote>> = repository.getAllNotes()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // Notes filtered by search, category, and favorites
     val filteredNotes: StateFlow<List<ReelNote>> = combine(
-        repository.getAllNotes(),
+        allNotes,
         _searchQuery,
         _selectedCategory,
         _onlyFavorites

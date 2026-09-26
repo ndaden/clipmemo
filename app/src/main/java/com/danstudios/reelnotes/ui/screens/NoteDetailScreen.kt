@@ -4,8 +4,13 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -13,21 +18,28 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.components.RecipeChecklist
 import com.danstudios.reelnotes.ui.components.StepList
+import com.danstudios.reelnotes.ui.theme.*
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
     noteId: Long,
@@ -42,327 +54,612 @@ fun NoteDetailScreen(
     var showRawCaption by remember { mutableStateOf(false) }
 
     if (note == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DarkBackground),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = NeonViolet)
         }
         return
     }
 
     val currentNote = note!!
+    val hasThumbnail = !currentNote.thumbnailUrl.isNullOrBlank()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "${currentNote.category.iconEmoji} ${currentNote.category.label}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBackground)
+    ) {
+        // Main scrollable content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Hero Thumbnail Section
+            if (hasThumbnail) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
+                ) {
+                    AsyncImage(
+                        model = currentNote.thumbnailUrl,
+                        contentDescription = currentNote.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
-                    }
-                },
-                actions = {
-                    // Favorite toggle
-                    IconButton(onClick = { viewModel.toggleFavorite(currentNote) }) {
-                        Icon(
-                            imageVector = if (currentNote.isFavorite) Icons.Default.Star else Icons.Outlined.StarBorder,
-                            contentDescription = "Favori",
-                            tint = if (currentNote.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+
+                    // Vertical gradient fade from transparent to DarkBackground
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        DarkBackground.copy(alpha = 0.5f),
+                                        DarkBackground
+                                    )
+                                )
+                            )
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.statusBarsPadding().height(60.dp))
+            }
+
+            // Body Content
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                // Category & Author Pills
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Category Badge
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(DarkSurfaceElevated)
+                            .border(1.dp, DarkBorder, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            text = "${currentNote.category.iconEmoji} ${currentNote.category.label}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
                         )
                     }
 
-                    // Copy to clipboard
-                    IconButton(onClick = {
+                    // Author Pill
+                    if (!currentNote.author.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(9999.dp))
+                                .background(DarkSurfaceElevated)
+                                .border(1.dp, DarkBorder, RoundedCornerShape(9999.dp))
+                                .clickable {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentNote.reelUrl))
+                                    context.startActivity(intent)
+                                }
+                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                text = "${currentNote.author} • Voir sur Instagram",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = NeonVioletLight
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Title
+                Text(
+                    text = currentNote.title,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    lineHeight = 30.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Direct Instagram CTA Button in DarkSurfaceElevated with play icon
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .border(1.dp, DarkBorderHover, RoundedCornerShape(14.dp))
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentNote.reelUrl))
+                            context.startActivity(intent)
+                        },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkSurfaceElevated)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(NeonViolet.copy(alpha = 0.2f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayCircle,
+                                contentDescription = null,
+                                tint = NeonVioletLight,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Regarder le Reel sur Instagram",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Summary Card with DarkSurface, DarkBorder, and NeonViolet highlight
+                if (currentNote.summary.isNotBlank()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = DarkSurface)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(3.dp, 16.dp)
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(NeonViolet)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "💡 Résumé",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = NeonVioletLight
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = currentNote.summary,
+                                fontSize = 14.sp,
+                                color = TextSecondary,
+                                lineHeight = 22.sp
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
+
+                // Recipe Times & Servings Chips in DarkSurfaceElevated
+                val data = currentNote.structuredData
+                val hasTimes = data.prepTime != null || data.cookTime != null || data.servings != null
+                if (hasTimes) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        data.prepTime?.let {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(DarkSurfaceElevated)
+                                    .border(1.dp, DarkBorder, RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "⏱️ Prép : $it",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = EmeraldLight
+                                )
+                            }
+                        }
+                        data.cookTime?.let {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(DarkSurfaceElevated)
+                                    .border(1.dp, DarkBorder, RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "🔥 Cuisson : $it",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = RecipeColor
+                                )
+                            }
+                        }
+                        data.servings?.let {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(DarkSurfaceElevated)
+                                    .border(1.dp, DarkBorder, RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "👥 $it",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = CyanAccent
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
+
+                // Recipe Ingredients Checklist
+                if (data.ingredients.isNotEmpty()) {
+                    RecipeChecklist(
+                        ingredients = data.ingredients,
+                        onToggleIngredient = { index, isChecked ->
+                            viewModel.updateIngredientChecked(currentNote, index, isChecked)
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
+
+                // Steps Timeline List
+                if (data.steps.isNotEmpty()) {
+                    val stepTitle = when (currentNote.category) {
+                        NoteCategory.RECIPE -> "👨‍🍳 Préparation"
+                        NoteCategory.WORKOUT -> "💪 Exercices"
+                        NoteCategory.TUTORIAL -> "🛠️ Étapes"
+                        else -> "📋 Étapes"
+                    }
+                    StepList(
+                        title = stepTitle,
+                        steps = data.steps,
+                        onToggleStep = { stepNumber, isDone ->
+                            viewModel.updateStepDone(currentNote, stepNumber, isDone)
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
+
+                // Chef Tips Card with amber accent border
+                if (data.tips.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, RecipeColor.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = DarkSurface)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Lightbulb,
+                                    contentDescription = null,
+                                    tint = RecipeColor,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Astuces & Conseils",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = RecipeColor
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            for (tip in data.tips) {
+                                Row(
+                                    modifier = Modifier.padding(vertical = 3.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Text(
+                                        text = "• ",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = RecipeColor
+                                    )
+                                    Text(
+                                        text = tip,
+                                        fontSize = 13.sp,
+                                        color = TextSecondary,
+                                        lineHeight = 20.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
+
+                // Key Takeaways Card
+                if (data.keyTakeaways.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, CyanAccent.copy(alpha = 0.4f), RoundedCornerShape(16.dp)),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = DarkSurface)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = CyanAccent,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Points Clés",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = CyanAccent
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            for (point in data.keyTakeaways) {
+                                Row(
+                                    modifier = Modifier.padding(vertical = 3.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Text(
+                                        text = "• ",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = CyanAccent
+                                    )
+                                    Text(
+                                        text = point,
+                                        fontSize = 13.sp,
+                                        color = TextSecondary,
+                                        lineHeight = 20.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
+
+                // Tags
+                if (currentNote.tags.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        currentNote.tags.forEach { tag ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(DarkSurfaceElevated)
+                                    .border(1.dp, DarkBorder, RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "#$tag",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = NeonVioletLight
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
+
+                // Expandable Original Caption
+                if (currentNote.rawCaption.isNotBlank()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .border(1.dp, DarkBorder, RoundedCornerShape(14.dp))
+                            .clickable { showRawCaption = !showRawCaption },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = DarkSurface)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Légende originale du Reel",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextSecondary
+                                )
+                                Icon(
+                                    imageVector = if (showRawCaption) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            AnimatedVisibility(visible = showRawCaption) {
+                                Column {
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    HorizontalDivider(color = DarkBorder)
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Text(
+                                        text = currentNote.rawCaption,
+                                        fontSize = 12.sp,
+                                        color = TextTertiary,
+                                        lineHeight = 18.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+            }
+        }
+
+        // Circular Glass Action Buttons overlaying top
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            GlassActionButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Retour",
+                onClick = onBack
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Favorite
+                GlassActionButton(
+                    icon = if (currentNote.isFavorite) Icons.Default.Star else Icons.Outlined.StarBorder,
+                    contentDescription = "Favori",
+                    tint = if (currentNote.isFavorite) GoldStar else TextPrimary,
+                    onClick = { viewModel.toggleFavorite(currentNote) }
+                )
+
+                // Copy Markdown
+                GlassActionButton(
+                    icon = Icons.Default.ContentCopy,
+                    contentDescription = "Copier",
+                    onClick = {
                         clipboardManager.setText(AnnotatedString(currentNote.markdownContent))
                         Toast.makeText(context, "Note copiée dans le presse-papier !", Toast.LENGTH_SHORT).show()
-                    }) {
-                        Icon(Icons.Default.ContentCopy, contentDescription = "Copier")
                     }
+                )
 
-                    // Share note
-                    IconButton(onClick = {
+                // Share
+                GlassActionButton(
+                    icon = Icons.Default.Share,
+                    contentDescription = "Partager",
+                    onClick = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_SUBJECT, currentNote.title)
                             putExtra(Intent.EXTRA_TEXT, currentNote.markdownContent)
                         }
                         context.startActivity(Intent.createChooser(shareIntent, "Partager la note"))
-                    }) {
-                        Icon(Icons.Default.Share, contentDescription = "Partager")
-                    }
-
-                    // Delete note
-                    IconButton(onClick = { showDeleteConfirm = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Supprimer")
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            // Title
-            Text(
-                text = currentNote.title,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            // Author handle
-            if (!currentNote.author.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = currentNote.author,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Action Button: Direct link to Instagram Reel
-            Button(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentNote.reelUrl))
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Default.PlayCircle, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Regarder le Reel sur Instagram")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Summary Card
-            if (currentNote.summary.isNotBlank()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "💡 Résumé",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = currentNote.summary,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Recipe Times & Servings Chips
-            val data = currentNote.structuredData
-            val hasTimes = data.prepTime != null || data.cookTime != null || data.servings != null
-            if (hasTimes) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    data.prepTime?.let {
-                        AssistChip(
-                            onClick = {},
-                            label = { Text("⏱️ Prép : $it") }
-                        )
-                    }
-                    data.cookTime?.let {
-                        AssistChip(
-                            onClick = {},
-                            label = { Text("🔥 Cuisson : $it") }
-                        )
-                    }
-                    data.servings?.let {
-                        AssistChip(
-                            onClick = {},
-                            label = { Text("👥 $it") }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Recipe Ingredients Checklist
-            if (data.ingredients.isNotEmpty()) {
-                RecipeChecklist(
-                    ingredients = data.ingredients,
-                    onToggleIngredient = { index, isChecked ->
-                        viewModel.updateIngredientChecked(currentNote, index, isChecked)
                     }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
 
-            // Steps / Instructions / Exercises
-            if (data.steps.isNotEmpty()) {
-                val stepTitle = when (currentNote.category) {
-                    NoteCategory.RECIPE -> "👨‍🍳 Préparation"
-                    NoteCategory.WORKOUT -> "💪 Exercices"
-                    NoteCategory.TUTORIAL -> "🛠️ Étapes"
-                    else -> "📋 Étapes"
-                }
-                StepList(
-                    title = stepTitle,
-                    steps = data.steps,
-                    onToggleStep = { stepNumber, isDone ->
-                        viewModel.updateStepDone(currentNote, stepNumber, isDone)
-                    }
+                // Delete
+                GlassActionButton(
+                    icon = Icons.Default.Delete,
+                    contentDescription = "Supprimer",
+                    tint = Color(0xFFEF4444),
+                    onClick = { showDeleteConfirm = true }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Chef / Pro Tips
-            if (data.tips.isNotEmpty()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "✨ Astuces & Conseils",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        for (tip in data.tips) {
-                            Text(
-                                text = "• $tip",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(vertical = 2.dp)
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Key Takeaways
-            if (data.keyTakeaways.isNotEmpty()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "📌 Points Clés",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        for (point in data.keyTakeaways) {
-                            Text(
-                                text = "• $point",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(vertical = 2.dp)
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Tags
-            if (currentNote.tags.isNotEmpty()) {
-                Text(
-                    text = "Tags : " + currentNote.tags.joinToString(" ") { "#$it" },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Expandable Original Caption
-            if (currentNote.rawCaption.isNotBlank()) {
-                OutlinedCard(
-                    onClick = { showRawCaption = !showRawCaption },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Légende originale du Reel",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Icon(
-                                imageVector = if (showRawCaption) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = null
-                            )
-                        }
-
-                        AnimatedVisibility(visible = showRawCaption) {
-                            Column {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                HorizontalDivider()
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = currentNote.rawCaption,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 
+    // Delete Confirmation Dialog
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Supprimer cette note ?") },
-            text = { Text("Cette action est irréversible.") },
+            containerColor = DarkSurface,
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.border(1.dp, DarkBorder, RoundedCornerShape(20.dp)),
+            title = {
+                Text(
+                    text = "Supprimer cette note ?",
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = "Cette action est irréversible et supprimera définitivement cette fiche de votre appareil.",
+                    color = TextSecondary,
+                    fontSize = 14.sp
+                )
+            },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         showDeleteConfirm = false
                         viewModel.deleteNote(currentNote.id)
                         onBack()
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Supprimer")
+                    Text("Supprimer", fontWeight = FontWeight.Bold, color = Color.White)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
+                TextButton(
+                    onClick = { showDeleteConfirm = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = TextSecondary)
+                ) {
                     Text("Annuler")
                 }
             }
+        )
+    }
+}
+
+@Composable
+private fun GlassActionButton(
+    icon: ImageVector,
+    contentDescription: String?,
+    onClick: () -> Unit,
+    tint: Color = TextPrimary,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(DarkSurface.copy(alpha = 0.82f))
+            .border(1.dp, DarkBorder, CircleShape)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(color = Color.White),
+                onClick = onClick
+            )
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(18.dp)
         )
     }
 }
