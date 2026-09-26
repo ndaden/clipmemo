@@ -1,19 +1,28 @@
 package com.danstudios.reelnotes.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.danstudios.reelnotes.domain.model.StepItem
+import com.danstudios.reelnotes.ui.theme.*
 
 @Composable
 fun StepList(
@@ -22,63 +31,86 @@ fun StepList(
     onToggleStep: (Int, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+    Column(
+        modifier = modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+        Text(
+            text = title,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary
+        )
 
-            Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-            steps.forEach { step ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onToggleStep(step.stepNumber, !step.isDone) }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.Top
+        steps.forEachIndexed { index, step ->
+            val isLast = index == steps.size - 1
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { onToggleStep(step.stepNumber, !step.isDone) }
+                    ),
+                verticalAlignment = Alignment.Top
+            ) {
+                // Timeline Column: Circle Badge + Connecting Line
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.width(32.dp)
                 ) {
-                    // Step number circle badge
+                    val circleBg by animateColorAsState(
+                        targetValue = if (step.isDone) EmeraldSuccess else DarkSurfaceElevated,
+                        animationSpec = tween(durationMillis = 200),
+                        label = "stepCircleBg"
+                    )
+                    val circleBorder by animateColorAsState(
+                        targetValue = if (step.isDone) EmeraldSuccess else DarkBorder,
+                        animationSpec = tween(durationMillis = 200),
+                        label = "stepCircleBorder"
+                    )
+
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .size(28.dp)
                             .clip(CircleShape)
-                            .background(
-                                if (step.isDone) MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                                else MaterialTheme.colorScheme.primary
-                            )
+                            .background(circleBg)
+                            .border(1.dp, circleBorder, CircleShape)
                     ) {
                         Text(
                             text = "${step.stepNumber}",
-                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (step.isDone) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
+                            color = if (step.isDone) Color.White else TextSecondary
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Text(
-                        text = step.instruction,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textDecoration = if (step.isDone) TextDecoration.LineThrough else TextDecoration.None,
-                        color = if (step.isDone) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
+                    if (!isLast) {
+                        Box(
+                            modifier = Modifier
+                                .width(2.dp)
+                                .height(44.dp)
+                                .background(DarkBorder)
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Step Instruction Text
+                Text(
+                    text = step.instruction,
+                    fontSize = 14.sp,
+                    color = if (step.isDone) TextTertiary else TextPrimary,
+                    textDecoration = if (step.isDone) TextDecoration.LineThrough else TextDecoration.None,
+                    lineHeight = 20.sp,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(bottom = if (isLast) 0.dp else 20.dp)
+                )
             }
         }
     }
