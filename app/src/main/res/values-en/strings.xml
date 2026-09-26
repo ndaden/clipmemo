@@ -1,0 +1,108 @@
+<resources>
+    <string name="app_name">ReelNotes</string>
+
+    <!-- Navigation Tabs -->
+    <string name="tab_notes">Notes</string>
+    <string name="tab_favorites">Favorites</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Search & Filters -->
+    <string name="search_placeholder">Search notes, recipes, tips...</string>
+    <string name="category_all">All</string>
+    <string name="category_recipe">Recipes</string>
+    <string name="category_tutorial">Tutorials</string>
+    <string name="category_workout">Workout</string>
+    <string name="category_tips">Tips</string>
+    <string name="category_travel">Travel</string>
+    <string name="category_product">Products</string>
+    <string name="category_general">Other</string>
+
+    <!-- Feed & Empty States -->
+    <string name="empty_notes_title">No notes yet</string>
+    <string name="empty_notes_subtitle">Paste an Instagram link or share a Reel to create your first note.</string>
+    <string name="empty_favorites_title">No favorites</string>
+    <string name="empty_favorites_subtitle">Tap the star on a note to easily find it here.</string>
+    <string name="empty_search_title">No results found</string>
+    <string name="empty_search_subtitle">Check your spelling or try different keywords.</string>
+    <string name="empty_category_title">No notes in this category</string>
+    <string name="load_sample_data">Load sample notes</string>
+
+    <!-- Add Reel Dialog -->
+    <string name="add_reel_title">Add Reel</string>
+    <string name="add_reel_subtitle">Paste the Instagram link or share directly from Instagram.</string>
+    <string name="url_field_label">Instagram Reel Link</string>
+    <string name="url_field_placeholder">https://www.instagram.com/reel/...</string>
+    <string name="caption_field_label">Caption or notes (optional)</string>
+    <string name="btn_create_note">Create Note</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="content_desc_paste">Paste</string>
+
+    <!-- Note Detail Screen -->
+    <string name="open_on_instagram">Open on Instagram</string>
+    <string name="see_on_instagram">View on Instagram</string>
+    <string name="section_summary">Summary</string>
+    <string name="section_ingredients">Ingredients</string>
+    <string name="recipe_progress">Progress</string>
+    <string name="items_checked_format">%1$d / %2$d checked</string>
+    <string name="ing_count_format">%1$d ingredients</string>
+    <string name="steps_count_format">%1$d steps</string>
+    <string name="step_title_recipe">Preparation</string>
+    <string name="step_title_workout">Exercises</string>
+    <string name="step_title_default">Steps</string>
+    <string name="section_tips">Tips</string>
+    <string name="section_takeaways">Key Points</string>
+    <string name="section_original_caption">Original Caption</string>
+    <string name="prep_time_format">Prep: %1$s</string>
+    <string name="cook_time_format">Cook: %1$s</string>
+    <string name="servings_format">%1$s servings</string>
+    <string name="btn_delete">Delete</string>
+    <string name="dialog_delete_title">Delete this note?</string>
+    <string name="dialog_delete_message">This action cannot be undone and will permanently delete this note from your device.</string>
+    <string name="toast_note_copied">Note copied to clipboard</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_gemini_title">Transcription &amp; Analysis</string>
+    <string name="settings_gemini_desc">The Gemini key enables audio transcription and automatic note formatting.</string>
+    <string name="api_key_label">Google Gemini API Key</string>
+    <string name="api_key_placeholder">AIzaSy...</string>
+    <string name="api_key_warning">Google AI Studio keys usually start with \'AIzaSy\'.</string>
+    <string name="btn_test_key">Test Key</string>
+    <string name="btn_testing">Testing...</string>
+    <string name="btn_save">Save</string>
+    <string name="get_free_key_link">Get a free Gemini key (Google AI Studio)</string>
+    <string name="settings_instagram_title">Instagram Session</string>
+    <string name="settings_instagram_desc">Optional. Required for age-restricted Reels or private accounts.</string>
+    <string name="status_connected">Connected to Instagram</string>
+    <string name="status_connected_desc">All Reels can be analyzed</string>
+    <string name="status_not_connected">Not connected</string>
+    <string name="status_not_connected_desc">Only public unrestricted Reels can be accessed</string>
+    <string name="btn_connect_instagram">Log in to Instagram</string>
+    <string name="btn_disconnect">Log out</string>
+    <string name="settings_language_title">App Language</string>
+    <string name="settings_language_desc">Sets the interface language and the language for generated notes.</string>
+    <string name="lang_french">Français</string>
+    <string name="lang_english">English</string>
+    <string name="settings_data_title">Sample Data</string>
+    <string name="settings_data_desc">Load sample notes (recipes, workouts, tips) to explore the interface.</string>
+    <string name="btn_reload_samples">Reload sample notes</string>
+    <string name="settings_about_title">About</string>
+    <string name="app_version">ReelNotes v1.1.0</string>
+    <string name="settings_about_desc">Turns Instagram Reels into clean, structured notes.</string>
+    <string name="toast_key_required">Please enter an API key first</string>
+    <string name="toast_key_saved">API key saved</string>
+    <string name="toast_login_success">Instagram login successful</string>
+    <string name="toast_logged_out">Logged out</string>
+    <string name="toast_samples_loaded">Sample notes loaded</string>
+    <string name="btn_back">Back</string>
+    <string name="content_desc_hide">Hide</string>
+    <string name="content_desc_show">Show</string>
+
+    <!-- Pipeline Statuses -->
+    <string name="overlay_title">Creating Note</string>
+    <string name="status_processing_generic">Processing...</string>
+    <string name="status_fetching">Fetching Instagram Reel...</string>
+    <string name="status_processing">Analyzing video...</string>
+    <string name="status_saving">Saving note...</string>
+    <string name="default_processing_error">Error processing Reel</string>
+</resources>

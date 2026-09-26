@@ -29,11 +29,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.components.RecipeChecklist
 import com.danstudios.reelnotes.ui.components.StepList
@@ -134,7 +136,7 @@ fun NoteDetailScreen(
                             .padding(horizontal = 10.dp, vertical = 5.dp)
                     ) {
                         Text(
-                            text = "${currentNote.category.iconEmoji} ${currentNote.category.label}",
+                            text = stringResource(currentNote.category.labelRes),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
@@ -155,7 +157,7 @@ fun NoteDetailScreen(
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
                         ) {
                             Text(
-                                text = "${currentNote.author} • Voir sur Instagram",
+                                text = "${currentNote.author} • ${stringResource(R.string.see_on_instagram)}",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = NeonVioletLight
@@ -213,7 +215,7 @@ fun NoteDetailScreen(
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Regarder le Reel sur Instagram",
+                            text = stringResource(R.string.open_on_instagram),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
@@ -243,7 +245,7 @@ fun NoteDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "💡 Résumé",
+                                    text = stringResource(R.string.section_summary),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = NeonVioletLight
@@ -279,7 +281,7 @@ fun NoteDetailScreen(
                                     .padding(horizontal = 10.dp, vertical = 6.dp)
                             ) {
                                 Text(
-                                    text = "⏱️ Prép : $it",
+                                    text = stringResource(R.string.prep_time_format, it),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = EmeraldLight
@@ -295,7 +297,7 @@ fun NoteDetailScreen(
                                     .padding(horizontal = 10.dp, vertical = 6.dp)
                             ) {
                                 Text(
-                                    text = "🔥 Cuisson : $it",
+                                    text = stringResource(R.string.cook_time_format, it),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = RecipeColor
@@ -303,6 +305,7 @@ fun NoteDetailScreen(
                             }
                         }
                         data.servings?.let {
+                            val text = if (it.any { c -> c.isLetter() }) it else stringResource(R.string.servings_format, it)
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(10.dp))
@@ -311,7 +314,7 @@ fun NoteDetailScreen(
                                     .padding(horizontal = 10.dp, vertical = 6.dp)
                             ) {
                                 Text(
-                                    text = "👥 $it",
+                                    text = text,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = CyanAccent
@@ -336,10 +339,9 @@ fun NoteDetailScreen(
                 // Steps Timeline List
                 if (data.steps.isNotEmpty()) {
                     val stepTitle = when (currentNote.category) {
-                        NoteCategory.RECIPE -> "👨‍🍳 Préparation"
-                        NoteCategory.WORKOUT -> "💪 Exercices"
-                        NoteCategory.TUTORIAL -> "🛠️ Étapes"
-                        else -> "📋 Étapes"
+                        NoteCategory.RECIPE -> stringResource(R.string.step_title_recipe)
+                        NoteCategory.WORKOUT -> stringResource(R.string.step_title_workout)
+                        else -> stringResource(R.string.step_title_default)
                     }
                     StepList(
                         title = stepTitle,
@@ -351,7 +353,7 @@ fun NoteDetailScreen(
                     Spacer(modifier = Modifier.height(18.dp))
                 }
 
-                // Chef Tips Card with amber accent border
+                // Tips Card with amber accent border
                 if (data.tips.isNotEmpty()) {
                     Card(
                         modifier = Modifier
@@ -371,7 +373,7 @@ fun NoteDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Astuces & Conseils",
+                                    text = stringResource(R.string.section_tips),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = RecipeColor
@@ -422,7 +424,7 @@ fun NoteDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Points Clés",
+                                    text = stringResource(R.string.section_takeaways),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = CyanAccent
@@ -497,7 +499,7 @@ fun NoteDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Légende originale du Reel",
+                                    text = stringResource(R.string.section_original_caption),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = TextSecondary
@@ -562,7 +564,7 @@ fun NoteDetailScreen(
                     contentDescription = "Copier",
                     onClick = {
                         clipboardManager.setText(AnnotatedString(currentNote.markdownContent))
-                        Toast.makeText(context, "Note copiée dans le presse-papier !", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_note_copied), Toast.LENGTH_SHORT).show()
                     }
                 )
 
@@ -600,14 +602,14 @@ fun NoteDetailScreen(
             modifier = Modifier.border(1.dp, DarkBorder, RoundedCornerShape(20.dp)),
             title = {
                 Text(
-                    text = "Supprimer cette note ?",
+                    text = stringResource(R.string.dialog_delete_title),
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
             },
             text = {
                 Text(
-                    text = "Cette action est irréversible et supprimera définitivement cette fiche de votre appareil.",
+                    text = stringResource(R.string.dialog_delete_message),
                     color = TextSecondary,
                     fontSize = 14.sp
                 )
@@ -622,7 +624,7 @@ fun NoteDetailScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Supprimer", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(stringResource(R.string.btn_delete), fontWeight = FontWeight.Bold, color = Color.White)
                 }
             },
             dismissButton = {
@@ -630,7 +632,7 @@ fun NoteDetailScreen(
                     onClick = { showDeleteConfirm = false },
                     colors = ButtonDefaults.textButtonColors(contentColor = TextSecondary)
                 ) {
-                    Text("Annuler")
+                    Text(stringResource(R.string.btn_cancel))
                 }
             }
         )

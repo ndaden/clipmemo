@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.domain.model.IngredientItem
 import com.danstudios.reelnotes.ui.theme.*
 
@@ -51,14 +53,14 @@ fun RecipeChecklist(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Ingrédients",
+                text = stringResource(R.string.section_ingredients),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
 
             Text(
-                text = "$checkedCount / $totalCount cochés",
+                text = stringResource(R.string.items_checked_format, checkedCount, totalCount),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = if (checkedCount == totalCount && totalCount > 0) EmeraldSuccess else CyanAccent
@@ -84,7 +86,7 @@ fun RecipeChecklist(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Progression recette",
+                        text = stringResource(R.string.recipe_progress),
                         fontSize = 12.sp,
                         color = TextSecondary,
                         fontWeight = FontWeight.Medium

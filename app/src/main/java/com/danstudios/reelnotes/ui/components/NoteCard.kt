@@ -19,11 +19,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.domain.model.ReelNote
 import com.danstudios.reelnotes.ui.theme.*
@@ -164,16 +166,17 @@ fun NoteCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         prepTime?.let {
-                            MetadataPill(text = "⏱ $it", color = EmeraldLight)
+                            MetadataPill(text = it, color = EmeraldLight)
                         }
                         servings?.let {
-                            MetadataPill(text = "👥 $it", color = CyanAccent)
+                            val text = if (it.any { c -> c.isLetter() }) it else stringResource(R.string.servings_format, it)
+                            MetadataPill(text = text, color = CyanAccent)
                         }
                         if (ingCount > 0) {
-                            MetadataPill(text = "🥗 $ingCount ingrédients", color = EmeraldLight)
+                            MetadataPill(text = stringResource(R.string.ing_count_format, ingCount), color = EmeraldLight)
                         }
                         if (stepCount > 0) {
-                            MetadataPill(text = "$stepCount étapes", color = TextSecondary)
+                            MetadataPill(text = stringResource(R.string.steps_count_format, stepCount), color = TextSecondary)
                         }
                     }
                 }
@@ -194,7 +197,7 @@ private fun CategoryBadge(category: NoteCategory) {
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
-            text = "${category.iconEmoji} ${category.label}",
+            text = stringResource(category.labelRes),
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
             color = TextPrimary

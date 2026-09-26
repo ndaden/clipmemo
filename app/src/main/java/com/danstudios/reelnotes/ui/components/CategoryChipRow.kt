@@ -17,9 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.theme.*
 
@@ -41,10 +43,10 @@ fun CategoryChipRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // "✨ Tout" Chip
+        // "Tout" Chip
         val isAllSelected = selectedCategory == null && !onlyFavorites
         ModernChip(
-            label = "✨ Tout",
+            label = stringResource(R.string.category_all),
             count = if (totalNotesCount > 0) totalNotesCount else categoryCounts[null],
             isSelected = isAllSelected,
             onClick = {
@@ -58,7 +60,7 @@ fun CategoryChipRow(
             val isSelected = selectedCategory == category && !onlyFavorites
             val count = categoryCounts[category]
             ModernChip(
-                label = "${category.iconEmoji} ${category.label}",
+                label = stringResource(category.labelRes),
                 count = count,
                 isSelected = isSelected,
                 onClick = {
@@ -98,18 +100,18 @@ private fun ModernChip(
     )
 
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
         modifier = Modifier
-            .clip(RoundedCornerShape(9999.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(bgColor)
-            .border(1.dp, borderColor, RoundedCornerShape(9999.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(20.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 14.dp, vertical = 7.dp)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
             text = label,
@@ -118,20 +120,21 @@ private fun ModernChip(
             color = textColor
         )
 
-        if (count != null && count > 0) {
-            Spacer(modifier = Modifier.width(6.dp))
+        count?.let { cnt ->
             Box(
-                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(9999.dp))
-                    .background(if (isSelected) NeonViolet.copy(alpha = 0.4f) else DarkSurfaceElevated)
-                    .padding(horizontal = 6.dp, vertical = 1.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        if (isSelected) NeonViolet.copy(alpha = 0.35f)
+                        else DarkSurfaceElevated
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = "$count",
+                    text = cnt.toString(),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isSelected) TextPrimary else TextTertiary
+                    color = if (isSelected) NeonVioletLight else TextTertiary
                 )
             }
         }

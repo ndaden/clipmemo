@@ -9,22 +9,26 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.components.AddReelDialog
+import com.danstudios.reelnotes.ui.components.AppLogo
 import com.danstudios.reelnotes.ui.components.BottomBarTab
 import com.danstudios.reelnotes.ui.components.CategoryChipRow
 import com.danstudios.reelnotes.ui.components.FloatingBottomBar
@@ -65,10 +69,10 @@ fun NotesListScreen(
 
     LaunchedEffect(errorMessage) {
         errorMessage?.let { msg ->
-            if (msg.contains("Paramètres")) {
+            if (msg.contains("Paramètres") || msg.contains("Settings")) {
                 val res = snackbarHostState.showSnackbar(
                     message = msg,
-                    actionLabel = "Paramètres",
+                    actionLabel = context.getString(R.string.tab_settings),
                     duration = SnackbarDuration.Long
                 )
                 if (res == SnackbarResult.ActionPerformed) {
@@ -96,7 +100,7 @@ fun NotesListScreen(
                     .fillMaxSize()
                     .statusBarsPadding()
             ) {
-                // Sleek Header
+                // Sleek Header with Modern Logo
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -105,28 +109,15 @@ fun NotesListScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        AppLogo(size = 28.dp)
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "ReelNotes",
-                            fontSize = 26.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary,
                             letterSpacing = (-0.5).sp
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(NeonViolet.copy(alpha = 0.2f))
-                                .border(1.dp, NeonViolet.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = "AI",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = NeonVioletLight
-                            )
-                        }
                     }
                 }
 
@@ -141,7 +132,7 @@ fun NotesListScreen(
                         onValueChange = { viewModel.setSearchQuery(it) },
                         placeholder = {
                             Text(
-                                text = "Rechercher une note, recette, astuce...",
+                                text = stringResource(R.string.search_placeholder),
                                 color = TextPlaceholder,
                                 fontSize = 14.sp
                             )
@@ -149,7 +140,7 @@ fun NotesListScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Rechercher",
+                                contentDescription = null,
                                 tint = NeonVioletLight,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -159,7 +150,7 @@ fun NotesListScreen(
                                 IconButton(onClick = { viewModel.setSearchQuery("") }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
-                                        contentDescription = "Effacer",
+                                        contentDescription = null,
                                         tint = TextSecondary,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -210,43 +201,38 @@ fun NotesListScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            // Glowing icon circle
+                            // Clean icon circle with refined border
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
-                                    .size(76.dp)
+                                    .size(68.dp)
                                     .clip(CircleShape)
-                                    .background(
-                                        Brush.radialGradient(
-                                            colors = listOf(
-                                                NeonViolet.copy(alpha = 0.25f),
-                                                DarkSurfaceElevated.copy(alpha = 0.6f),
-                                                Color.Transparent
-                                            )
-                                        )
-                                    )
-                                    .border(1.dp, NeonViolet.copy(alpha = 0.35f), CircleShape)
+                                    .background(DarkSurfaceElevated)
+                                    .border(1.dp, DarkBorder, CircleShape)
                             ) {
-                                Text(
-                                    text = when {
-                                        onlyFavorites -> "⭐"
-                                        searchQuery.isNotBlank() -> "🔍"
-                                        else -> "✨"
-                                    },
-                                    fontSize = 32.sp
+                                val icon = when {
+                                    onlyFavorites -> Icons.Outlined.StarOutline
+                                    searchQuery.isNotBlank() -> Icons.Default.Search
+                                    else -> Icons.Default.Description
+                                }
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = NeonVioletLight,
+                                    modifier = Modifier.size(30.dp)
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(20.dp))
+                            Spacer(modifier = Modifier.height(18.dp))
 
                             Text(
                                 text = when {
-                                    onlyFavorites -> "Aucun favori pour l'instant"
-                                    searchQuery.isNotBlank() -> "Aucun résultat trouvé"
-                                    selectedCategory != null -> "Aucune note dans cette catégorie"
-                                    else -> "Aucun Reel enregistré"
+                                    onlyFavorites -> stringResource(R.string.empty_favorites_title)
+                                    searchQuery.isNotBlank() -> stringResource(R.string.empty_search_title)
+                                    selectedCategory != null -> stringResource(R.string.empty_category_title)
+                                    else -> stringResource(R.string.empty_notes_title)
                                 },
-                                fontSize = 18.sp,
+                                fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary,
                                 textAlign = TextAlign.Center
@@ -256,14 +242,14 @@ fun NotesListScreen(
 
                             Text(
                                 text = when {
-                                    onlyFavorites -> "Touchez l'étoile sur une note pour la retrouver facilement ici."
-                                    searchQuery.isNotBlank() -> "Vérifiez l'orthographe ou essayez d'autres mots-clés."
-                                    else -> "Partagez un Reel Instagram vers ReelNotes ou appuyez sur + pour créer votre première fiche IA."
+                                    onlyFavorites -> stringResource(R.string.empty_favorites_subtitle)
+                                    searchQuery.isNotBlank() -> stringResource(R.string.empty_search_subtitle)
+                                    else -> stringResource(R.string.empty_notes_subtitle)
                                 },
-                                fontSize = 14.sp,
+                                fontSize = 13.sp,
                                 color = TextSecondary,
                                 textAlign = TextAlign.Center,
-                                lineHeight = 20.sp
+                                lineHeight = 19.sp
                             )
 
                             if (allNotes.isEmpty()) {
@@ -286,7 +272,7 @@ fun NotesListScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Charger des exemples de notes",
+                                        text = stringResource(R.string.load_sample_data),
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 14.sp
                                     )

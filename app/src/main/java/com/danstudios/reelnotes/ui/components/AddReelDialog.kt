@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Link
@@ -15,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.ui.theme.*
 
 @Composable
@@ -52,7 +53,7 @@ fun AddReelDialog(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Ajouter un Reel",
+                    text = stringResource(R.string.add_reel_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
@@ -62,7 +63,7 @@ fun AddReelDialog(
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Collez le lien Instagram ou partagez directement depuis Instagram.",
+                    text = stringResource(R.string.add_reel_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
@@ -72,7 +73,7 @@ fun AddReelDialog(
                 OutlinedTextField(
                     value = urlInput,
                     onValueChange = { urlInput = it },
-                    label = { Text("Lien du Reel Instagram", color = TextSecondary) },
+                    label = { Text(stringResource(R.string.url_field_label), color = TextSecondary) },
                     placeholder = { Text("https://www.instagram.com/reel/...", color = TextPlaceholder) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -94,7 +95,7 @@ fun AddReelDialog(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.ContentPaste,
-                                contentDescription = "Coller lien",
+                                contentDescription = stringResource(R.string.content_desc_paste),
                                 tint = NeonVioletLight
                             )
                         }
@@ -106,8 +107,7 @@ fun AddReelDialog(
                 OutlinedTextField(
                     value = captionInput,
                     onValueChange = { captionInput = it },
-                    label = { Text("Légende ou texte (facultatif)", color = TextSecondary) },
-                    placeholder = { Text("Utile si le compte est privé...", color = TextPlaceholder) },
+                    label = { Text(stringResource(R.string.caption_field_label), color = TextSecondary) },
                     singleLine = false,
                     maxLines = 3,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -140,9 +140,10 @@ fun AddReelDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = NeonViolet),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Transformer en notes avec l'IA", fontWeight = FontWeight.Bold)
+                Text(
+                    text = stringResource(R.string.btn_create_note),
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         },
         dismissButton = {
@@ -150,7 +151,7 @@ fun AddReelDialog(
                 onClick = onDismiss,
                 colors = ButtonDefaults.textButtonColors(contentColor = TextSecondary)
             ) {
-                Text("Annuler")
+                Text(stringResource(R.string.btn_cancel))
             }
         }
     )

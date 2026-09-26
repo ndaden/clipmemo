@@ -1,5 +1,6 @@
 package com.danstudios.reelnotes.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -30,15 +31,17 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.ui.theme.*
 
-enum class BottomBarTab(val label: String) {
-    NOTES("Notes"),
-    FAVORITES("Favoris"),
-    SETTINGS("Réglages")
+enum class BottomBarTab(val label: String, @StringRes val labelRes: Int = R.string.tab_notes) {
+    NOTES("Notes", R.string.tab_notes),
+    FAVORITES("Favoris", R.string.tab_favorites),
+    SETTINGS("Paramètres", R.string.tab_settings)
 }
 
 @Composable
@@ -70,7 +73,7 @@ fun FloatingBottomBar(
         ) {
             // Notes Tab
             NavItem(
-                label = "Notes",
+                label = stringResource(BottomBarTab.NOTES.labelRes),
                 icon = if (selectedTab == BottomBarTab.NOTES) Icons.Filled.GridView else Icons.Outlined.GridView,
                 isSelected = selectedTab == BottomBarTab.NOTES,
                 onClick = { onTabSelected(BottomBarTab.NOTES) }
@@ -80,7 +83,7 @@ fun FloatingBottomBar(
 
             // Favoris Tab
             NavItem(
-                label = "Favoris",
+                label = stringResource(BottomBarTab.FAVORITES.labelRes),
                 icon = if (selectedTab == BottomBarTab.FAVORITES) Icons.Filled.Star else Icons.Outlined.StarOutline,
                 isSelected = selectedTab == BottomBarTab.FAVORITES,
                 onClick = { onTabSelected(BottomBarTab.FAVORITES) }
@@ -107,7 +110,7 @@ fun FloatingBottomBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Ajouter un Reel",
+                    contentDescription = stringResource(R.string.add_reel_title),
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )
@@ -117,7 +120,7 @@ fun FloatingBottomBar(
 
             // Settings Tab
             NavItem(
-                label = "Réglages",
+                label = stringResource(BottomBarTab.SETTINGS.labelRes),
                 icon = if (selectedTab == BottomBarTab.SETTINGS) Icons.Filled.Settings else Icons.Outlined.Settings,
                 isSelected = selectedTab == BottomBarTab.SETTINGS,
                 onClick = { onTabSelected(BottomBarTab.SETTINGS) }
@@ -143,19 +146,19 @@ private fun NavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = null,
+                indication = ripple(color = NeonVioletLight),
                 onClick = onClick
             )
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = label,
             tint = contentColor,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(22.dp)
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(

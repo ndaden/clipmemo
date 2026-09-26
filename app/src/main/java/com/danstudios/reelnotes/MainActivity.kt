@@ -1,16 +1,23 @@
 package com.danstudios.reelnotes
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,11 +27,11 @@ import com.danstudios.reelnotes.ui.navigation.Screen
 import com.danstudios.reelnotes.ui.screens.NoteDetailScreen
 import com.danstudios.reelnotes.ui.screens.NotesListScreen
 import com.danstudios.reelnotes.ui.screens.SettingsScreen
-import androidx.activity.SystemBarStyle
 import com.danstudios.reelnotes.ui.theme.DarkBackground
 import com.danstudios.reelnotes.ui.theme.ReelNotesTheme
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
 import kotlinx.coroutines.flow.collectLatest
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
@@ -43,53 +50,72 @@ class MainActivity : ComponentActivity() {
         handleIncomingIntent(intent)
 
         setContent {
-            ReelNotesTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = DarkBackground
-                ) {
-                    val navController = rememberNavController()
+            val preferredLanguage by viewModel.preferredLanguage.collectAsState()
+            val locale = remember(preferredLanguage) {
+                if (preferredLanguage.startsWith("en", ignoreCase = true)) Locale.ENGLISH else Locale.FRENCH
+            }
+            val baseContext = LocalContext.current
+            val localizedConfiguration = remember(preferredLanguage, locale) {
+                Configuration(baseContext.resources.configuration).apply {
+                    setLocale(locale)
+                }
+            }
+            val localizedContext = remember(preferredLanguage, locale, baseContext) {
+                baseContext.createConfigurationContext(localizedConfiguration)
+            }
 
-                    // Automatically navigate to note details when a new note is processed
-                    LaunchedEffect(Unit) {
-                        viewModel.newlyCreatedNoteId.collectLatest { noteId ->
-                            navController.navigate(Screen.NoteDetail.createRoute(noteId))
-                        }
-                    }
-
-                    NavHost(
-                        navController = navController,
-                        startDestination = Screen.NotesList.route
+            CompositionLocalProvider(
+                LocalConfiguration provides localizedConfiguration,
+                LocalContext provides localizedContext
+            ) {
+                ReelNotesTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = DarkBackground
                     ) {
-                        composable(Screen.NotesList.route) {
-                            NotesListScreen(
-                                viewModel = viewModel,
-                                onNoteClick = { noteId ->
-                                    navController.navigate(Screen.NoteDetail.createRoute(noteId))
-                                },
-                                onSettingsClick = {
-                                    navController.navigate(Screen.Settings.route)
-                                }
-                            )
+                        val navController = rememberNavController()
+
+                        // Automatically navigate to note details when a new note is processed
+                        LaunchedEffect(Unit) {
+                            viewModel.newlyCreatedNoteId.collectLatest { noteId ->
+                                navController.navigate(Screen.NoteDetail.createRoute(noteId))
+                            }
                         }
 
-                        composable(
-                            route = Screen.NoteDetail.route,
-                            arguments = listOf(navArgument("noteId") { type = NavType.LongType })
-                        ) { backStackEntry ->
-                            val noteId = backStackEntry.arguments?.getLong("noteId") ?: 0L
-                            NoteDetailScreen(
-                                noteId = noteId,
-                                viewModel = viewModel,
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
+                        NavHost(
+                            navController = navController,
+                            startDestination = Screen.NotesList.route
+                        ) {
+                            composable(Screen.NotesList.route) {
+                                NotesListScreen(
+                                    viewModel = viewModel,
+                                    onNoteClick = { noteId ->
+                                        navController.navigate(Screen.NoteDetail.createRoute(noteId))
+                                    },
+                                    onSettingsClick = {
+                                        navController.navigate(Screen.Settings.route)
+                                    }
+                                )
+                            }
 
-                        composable(Screen.Settings.route) {
-                            SettingsScreen(
-                                viewModel = viewModel,
-                                onBack = { navController.popBackStack() }
-                            )
+                            composable(
+                                route = Screen.NoteDetail.route,
+                                arguments = listOf(navArgument("noteId") { type = NavType.LongType })
+                            ) { backStackEntry ->
+                                val noteId = backStackEntry.arguments?.getLong("noteId") ?: 0L
+                                NoteDetailScreen(
+                                    noteId = noteId,
+                                    viewModel = viewModel,
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.Settings.route) {
+                                SettingsScreen(
+                                    viewModel = viewModel,
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
                         }
                     }
                 }

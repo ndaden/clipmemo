@@ -8,7 +8,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,11 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.ui.components.InstagramLoginDialog
 import com.danstudios.reelnotes.ui.theme.*
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
@@ -65,7 +66,7 @@ fun SettingsScreen(
             onLoginSuccess = {
                 showLoginDialog = false
                 viewModel.refreshInstagramLoginState()
-                Toast.makeText(context, "Connexion Instagram réussie !", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_login_success), Toast.LENGTH_SHORT).show()
             }
         )
     }
@@ -76,9 +77,9 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Paramètres",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        text = stringResource(R.string.settings_title),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = TextPrimary
                     )
                 },
@@ -86,7 +87,7 @@ fun SettingsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Retour",
+                            contentDescription = stringResource(R.string.btn_back),
                             tint = TextPrimary
                         )
                     }
@@ -106,9 +107,9 @@ fun SettingsScreen(
         ) {
             // Section 1: Gemini AI
             Text(
-                text = "Intelligence Artificielle Google Gemini",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                text = stringResource(R.string.settings_gemini_title),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = NeonVioletLight
             )
 
@@ -124,7 +125,7 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Grâce à Gemini 3.6 Flash Multimodal, l'application écoute la voix du Reel, analyse les images et extrait automatiquement recettes, ingrédients précis et étapes pas à pas.",
+                        text = stringResource(R.string.settings_gemini_desc),
                         fontSize = 13.sp,
                         color = TextSecondary,
                         lineHeight = 18.sp
@@ -138,8 +139,8 @@ fun SettingsScreen(
                             apiKeyInput = it
                             keyTestResult = null
                         },
-                        label = { Text("Clé API Google Gemini", color = TextSecondary) },
-                        placeholder = { Text("AIzaSy... ou AQ...", color = TextPlaceholder) },
+                        label = { Text(stringResource(R.string.api_key_label), color = TextSecondary) },
+                        placeholder = { Text(stringResource(R.string.api_key_placeholder), color = TextPlaceholder) },
                         singleLine = true,
                         leadingIcon = {
                             Icon(Icons.Default.Key, contentDescription = null, tint = NeonVioletLight)
@@ -149,7 +150,7 @@ fun SettingsScreen(
                             IconButton(onClick = { showPassword = !showPassword }) {
                                 Icon(
                                     imageVector = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = if (showPassword) "Masquer" else "Afficher",
+                                    contentDescription = stringResource(if (showPassword) R.string.content_desc_hide else R.string.content_desc_show),
                                     tint = TextSecondary
                                 )
                             }
@@ -187,7 +188,7 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Attention : les clés Google AI Studio débutent normalement par 'AIzaSy'.",
+                                text = stringResource(R.string.api_key_warning),
                                 fontSize = 12.sp,
                                 color = ErrorRedLight
                             )
@@ -246,7 +247,7 @@ fun SettingsScreen(
                                         keyTestResult = res
                                     }
                                 } else {
-                                    Toast.makeText(context, "Veuillez entrer une clé d'abord", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.toast_key_required), Toast.LENGTH_SHORT).show()
                                 }
                             },
                             enabled = !isTestingKey && apiKeyInput.isNotBlank(),
@@ -259,16 +260,16 @@ fun SettingsScreen(
                             if (isTestingKey) {
                                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = NeonViolet)
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Test...", fontSize = 13.sp)
+                                Text(stringResource(R.string.btn_testing), fontSize = 13.sp)
                             } else {
-                                Text("Tester la clé", fontSize = 13.sp)
+                                Text(stringResource(R.string.btn_test_key), fontSize = 13.sp)
                             }
                         }
 
                         Button(
                             onClick = {
                                 viewModel.updateApiKey(apiKeyInput.trim())
-                                Toast.makeText(context, "Clé API enregistrée !", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.toast_key_saved), Toast.LENGTH_SHORT).show()
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -276,7 +277,7 @@ fun SettingsScreen(
                                 contentColor = Color.White
                             )
                         ) {
-                            Text("Enregistrer", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text(stringResource(R.string.btn_save), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
 
@@ -297,7 +298,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Obtenir une clé Gemini gratuite (Google AI Studio)",
+                            text = stringResource(R.string.get_free_key_link),
                             color = NeonVioletLight,
                             fontSize = 12.sp
                         )
@@ -309,9 +310,9 @@ fun SettingsScreen(
 
             // Section 2: Instagram Session (Optional)
             Text(
-                text = "Session Instagram (Optionnel)",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                text = stringResource(R.string.settings_instagram_title),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = NeonVioletLight
             )
 
@@ -327,7 +328,7 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Certains Reels (notamment avec restrictions d'âge ou provenant de comptes privés) ne sont pas accessibles sans compte Instagram.",
+                        text = stringResource(R.string.settings_instagram_desc),
                         fontSize = 13.sp,
                         color = TextSecondary,
                         lineHeight = 18.sp
@@ -354,14 +355,14 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = if (isInstagramLoggedIn) "Connecté à Instagram" else "Non connecté",
+                                text = stringResource(if (isInstagramLoggedIn) R.string.status_connected else R.string.status_not_connected),
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp,
                                 color = if (isInstagramLoggedIn) EmeraldLight else TextPrimary
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = if (isInstagramLoggedIn) "Tous les Reels peuvent être analysés" else "Seuls les Reels publics sans restriction sont accessibles",
+                                text = stringResource(if (isInstagramLoggedIn) R.string.status_connected_desc else R.string.status_not_connected_desc),
                                 fontSize = 11.sp,
                                 color = TextTertiary
                             )
@@ -375,13 +376,13 @@ fun SettingsScreen(
                             OutlinedButton(
                                 onClick = {
                                     viewModel.logoutInstagram()
-                                    Toast.makeText(context, "Déconnexion effectuée", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.toast_logged_out), Toast.LENGTH_SHORT).show()
                                 },
                                 shape = RoundedCornerShape(12.dp),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, DarkBorder),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
                             ) {
-                                Text("Se déconnecter", fontSize = 13.sp)
+                                Text(stringResource(R.string.btn_disconnect), fontSize = 13.sp)
                             }
                         } else {
                             Button(
@@ -393,7 +394,7 @@ fun SettingsScreen(
                                 ),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, DarkBorder)
                             ) {
-                                Text("Se connecter à Instagram", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.btn_connect_instagram), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -402,11 +403,11 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section 3: Langue des résumés
+            // Section 3: App Language
             Text(
-                text = "Langue des résumés",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                text = stringResource(R.string.settings_language_title),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = NeonVioletLight
             )
 
@@ -443,7 +444,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Français (par défaut)",
+                            text = stringResource(R.string.lang_french),
                             fontSize = 14.sp,
                             fontWeight = if (preferredLanguage == "fr") FontWeight.Bold else FontWeight.Normal,
                             color = TextPrimary
@@ -469,7 +470,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "English",
+                            text = stringResource(R.string.lang_english),
                             fontSize = 14.sp,
                             fontWeight = if (preferredLanguage == "en") FontWeight.Bold else FontWeight.Normal,
                             color = TextPrimary
@@ -480,11 +481,11 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section 4: Données & Démo
+            // Section 4: Data & Demo
             Text(
-                text = "Données & Démonstration",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                text = stringResource(R.string.settings_data_title),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = NeonVioletLight
             )
 
@@ -500,7 +501,7 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Ajoutez des exemples de notes pré-remplies (recette de pâtes crémeuses, routine sportive, astuces tech) pour tester l'application.",
+                        text = stringResource(R.string.settings_data_desc),
                         fontSize = 13.sp,
                         color = TextSecondary,
                         lineHeight = 18.sp
@@ -511,7 +512,7 @@ fun SettingsScreen(
                     Button(
                         onClick = {
                             viewModel.reloadSampleData()
-                            Toast.makeText(context, "Exemples ajoutés avec succès !", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.toast_samples_loaded), Toast.LENGTH_SHORT).show()
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -528,18 +529,18 @@ fun SettingsScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Recharger les notes d'exemples", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text(stringResource(R.string.btn_reload_samples), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section 5: À propos
+            // Section 5: About
             Text(
-                text = "À propos de ReelNotes",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                text = stringResource(R.string.settings_about_title),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = NeonVioletLight
             )
 
@@ -555,14 +556,14 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "ReelNotes v1.1.0",
+                        text = stringResource(R.string.app_version),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Application Android conçue pour transformer facilement les Reels Instagram en fiches de recettes, tutoriels et notes pratiques avec analyse IA multimodale audio/vidéo.",
+                        text = stringResource(R.string.settings_about_desc),
                         fontSize = 12.sp,
                         color = TextSecondary,
                         lineHeight = 17.sp
