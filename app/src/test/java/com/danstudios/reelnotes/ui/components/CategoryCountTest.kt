@@ -1,6 +1,5 @@
 package com.danstudios.reelnotes.ui.components
 
-import com.danstudios.reelnotes.domain.model.NoteCategory
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

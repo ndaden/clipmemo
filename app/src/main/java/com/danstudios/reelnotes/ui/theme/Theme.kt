@@ -1,9 +1,7 @@
 package com.danstudios.reelnotes.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val DarkColorScheme = darkColorScheme(
@@ -26,8 +24,6 @@ private val DarkColorScheme = darkColorScheme(
     outline = DarkBorder,
     outlineVariant = DarkBorderHover
 )
-
-private val LightColorScheme = DarkColorScheme // Dark Premium est le thème par défaut privilégié
 
 @Composable
 fun ReelNotesTheme(

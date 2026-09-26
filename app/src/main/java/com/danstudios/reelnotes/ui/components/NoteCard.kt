@@ -33,7 +33,6 @@ fun NoteCard(
     note: ReelNote,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
-    onOpenReel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(

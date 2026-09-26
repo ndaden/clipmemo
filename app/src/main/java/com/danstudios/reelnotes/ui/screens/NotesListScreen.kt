@@ -1,7 +1,5 @@
 package com.danstudios.reelnotes.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -311,11 +309,7 @@ fun NotesListScreen(
                             NoteCard(
                                 note = note,
                                 onClick = { onNoteClick(note.id) },
-                                onToggleFavorite = { viewModel.toggleFavorite(note) },
-                                onOpenReel = {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(note.reelUrl))
-                                    context.startActivity(intent)
-                                }
+                                onToggleFavorite = { viewModel.toggleFavorite(note) }
                             )
                         }
                     }
