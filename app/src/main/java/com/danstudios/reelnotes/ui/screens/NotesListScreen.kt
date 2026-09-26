@@ -112,7 +112,7 @@ fun NotesListScreen(
                         AppLogo(size = 28.dp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "ReelNotes",
+                            text = stringResource(R.string.app_name),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary,

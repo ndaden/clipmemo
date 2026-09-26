@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ReelNotes</string>
+    <string name="app_name">ClipMemo</string>
 
     <!-- Navigation Tabs -->
     <string name="tab_notes">Notes</string>
@@ -86,8 +86,8 @@
     <string name="settings_data_title">Données de démonstration</string>
     <string name="settings_data_desc">Charger des exemples de notes (recettes, sport, astuces) pour tester l\'application.</string>
     <string name="btn_reload_samples">Recharger les exemples</string>
-    <string name="settings_about_title">À propos</string>
-    <string name="app_version">ReelNotes v1.1.0</string>
+    <string name="settings_about_title">À propos de ClipMemo</string>
+    <string name="app_version">ClipMemo v1.1.0</string>
     <string name="settings_about_desc">Transforme les Reels Instagram en fiches structurées et pratiques.</string>
     <string name="toast_key_required">Veuillez entrer une clé d\'abord</string>
     <string name="toast_key_saved">Clé API enregistrée</string>
