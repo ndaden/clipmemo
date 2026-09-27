@@ -1,7 +1,5 @@
 package com.danstudios.reelnotes.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.ui.components.InstagramLoginDialog
 import com.danstudios.reelnotes.ui.theme.*
+import com.danstudios.reelnotes.ui.util.UrlLauncher
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -285,8 +284,7 @@ fun SettingsScreen(
 
                     TextButton(
                         onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://aistudio.google.com/app/apikey"))
-                            context.startActivity(intent)
+                            UrlLauncher.openWebUrl(context, "https://aistudio.google.com/app/apikey")
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {

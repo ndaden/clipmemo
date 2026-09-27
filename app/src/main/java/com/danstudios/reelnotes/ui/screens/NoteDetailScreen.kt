@@ -1,7 +1,5 @@
 package com.danstudios.reelnotes.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -40,6 +38,7 @@ import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.components.RecipeChecklist
 import com.danstudios.reelnotes.ui.components.StepList
 import com.danstudios.reelnotes.ui.theme.*
+import com.danstudios.reelnotes.ui.util.UrlLauncher
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
 
 @Composable
@@ -151,8 +150,7 @@ fun NoteDetailScreen(
                                 .background(DarkSurfaceElevated)
                                 .border(1.dp, DarkBorder, RoundedCornerShape(9999.dp))
                                 .clickable {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentNote.reelUrl))
-                                    context.startActivity(intent)
+                                    UrlLauncher.openInstagramReel(context, currentNote.reelUrl)
                                 }
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
                         ) {
@@ -186,8 +184,7 @@ fun NoteDetailScreen(
                         .clip(RoundedCornerShape(14.dp))
                         .border(1.dp, DarkBorderHover, RoundedCornerShape(14.dp))
                         .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentNote.reelUrl))
-                            context.startActivity(intent)
+                            UrlLauncher.openInstagramReel(context, currentNote.reelUrl)
                         },
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = DarkSurfaceElevated)
@@ -573,12 +570,12 @@ fun NoteDetailScreen(
                     icon = Icons.Default.Share,
                     contentDescription = "Partager",
                     onClick = {
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_SUBJECT, currentNote.title)
-                            putExtra(Intent.EXTRA_TEXT, currentNote.markdownContent)
-                        }
-                        context.startActivity(Intent.createChooser(shareIntent, "Partager la note"))
+                        UrlLauncher.shareText(
+                            context = context,
+                            title = currentNote.title,
+                            text = currentNote.markdownContent,
+                            chooserTitle = context.getString(R.string.share_note_title)
+                        )
                     }
                 )
 

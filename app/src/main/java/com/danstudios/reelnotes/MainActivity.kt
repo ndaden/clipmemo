@@ -61,7 +61,13 @@ class MainActivity : ComponentActivity() {
                 }
             }
             val localizedContext = remember(preferredLanguage, locale, baseContext) {
-                baseContext.createConfigurationContext(localizedConfiguration)
+                val configContext = baseContext.createConfigurationContext(localizedConfiguration)
+                object : android.content.ContextWrapper(baseContext) {
+                    override fun getResources(): android.content.res.Resources = configContext.resources
+                    override fun createConfigurationContext(overrideConfiguration: Configuration): android.content.Context {
+                        return configContext.createConfigurationContext(overrideConfiguration)
+                    }
+                }
             }
 
             CompositionLocalProvider(

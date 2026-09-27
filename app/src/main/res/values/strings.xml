@@ -105,4 +105,11 @@
     <string name="status_processing">Analyse de la vidéo...</string>
     <string name="status_saving">Enregistrement de la fiche...</string>
     <string name="default_processing_error">Erreur lors du traitement du Reel</string>
+
+    <!-- Launcher & Actions -->
+    <string name="error_invalid_url">Lien invalide ou indisponible</string>
+    <string name="error_no_browser">Aucun navigateur ou application disponible</string>
+    <string name="error_cannot_open_link">Impossible d\'ouvrir le lien</string>
+    <string name="error_cannot_share">Impossible d\'ouvrir le menu de partage</string>
+    <string name="share_note_title">Partager la note</string>
 </resources>

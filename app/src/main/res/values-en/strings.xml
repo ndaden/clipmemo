@@ -105,4 +105,11 @@
     <string name="status_processing">Analyzing video...</string>
     <string name="status_saving">Saving note...</string>
     <string name="default_processing_error">Error processing Reel</string>
+
+    <!-- Launcher & Actions -->
+    <string name="error_invalid_url">Invalid or unavailable link</string>
+    <string name="error_no_browser">No web browser or app available</string>
+    <string name="error_cannot_open_link">Unable to open link</string>
+    <string name="error_cannot_share">Unable to open share menu</string>
+    <string name="share_note_title">Share note</string>
 </resources>
