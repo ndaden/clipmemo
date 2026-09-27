@@ -11,7 +11,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.danstudios.reelnotes"
+        applicationId = "com.danstudios.clipmemo"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -23,8 +23,18 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = "clipmemo2026"
+            keyAlias = "clipmemo"
+            keyPassword = "clipmemo2026"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

@@ -12,6 +12,7 @@
 # Local configuration & secrets
 /local.properties
 /secrets.properties
+keystore.properties
 *.jks
 *.keystore
 *.key
