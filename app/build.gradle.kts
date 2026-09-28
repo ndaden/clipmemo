@@ -58,6 +58,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -94,6 +95,9 @@ dependencies {
 
     // Coil Image Loading
     implementation(libs.coil.compose)
+
+    // Google Mobile Ads
+    implementation(libs.play.services.ads)
 
     // Testing
     testImplementation(libs.junit)
