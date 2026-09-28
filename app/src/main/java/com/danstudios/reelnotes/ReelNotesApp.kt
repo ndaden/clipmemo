@@ -1,10 +1,12 @@
 package com.danstudios.reelnotes
 
 import android.app.Application
+import com.danstudios.reelnotes.ads.InterstitialAdController
 import com.danstudios.reelnotes.data.local.AppDatabase
 import com.danstudios.reelnotes.data.local.PreferencesManager
 import com.danstudios.reelnotes.data.repository.ReelNoteRepository
 import com.danstudios.reelnotes.data.util.SampleDataProvider
+import com.google.android.gms.ads.MobileAds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,5 +38,12 @@ class ReelNotesApp : Application() {
                 repository.insertAll(SampleDataProvider.getSampleNotes())
             }
         }
+
+        // Asynchronously initialize Google Mobile Ads SDK and preload first interstitial
+        CoroutineScope(Dispatchers.IO).launch {
+            MobileAds.initialize(this@ReelNotesApp) {}
+            InterstitialAdController.preload(this@ReelNotesApp)
+        }
     }
 }
+
