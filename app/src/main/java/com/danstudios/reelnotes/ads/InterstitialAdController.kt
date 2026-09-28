@@ -21,11 +21,13 @@ object InterstitialAdController {
 
     fun isAdReady(): Boolean = interstitialAd != null
 
+    @Synchronized
     fun resetForTesting() {
         interstitialAd = null
         isLoading = false
     }
 
+    @Synchronized
     fun preload(context: Context) {
         if (interstitialAd != null || isLoading) return
         isLoading = true
@@ -77,6 +79,13 @@ object InterstitialAdController {
             }
         }
 
-        ad.show(activity)
+        try {
+            ad.show(activity)
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception showing interstitial ad: ${e.message}", e)
+            interstitialAd = null
+            preload(activity.applicationContext)
+            onDismissedOrFailed()
+        }
     }
 }

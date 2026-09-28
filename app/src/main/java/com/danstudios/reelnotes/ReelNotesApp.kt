@@ -41,8 +41,9 @@ class ReelNotesApp : Application() {
 
         // Asynchronously initialize Google Mobile Ads SDK and preload first interstitial
         CoroutineScope(Dispatchers.IO).launch {
-            MobileAds.initialize(this@ReelNotesApp) {}
-            InterstitialAdController.preload(this@ReelNotesApp)
+            MobileAds.initialize(this@ReelNotesApp) {
+                InterstitialAdController.preload(this@ReelNotesApp)
+            }
         }
     }
 }
