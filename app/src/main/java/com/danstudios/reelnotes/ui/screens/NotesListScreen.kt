@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.danstudios.reelnotes.R
+import com.danstudios.reelnotes.ads.AdaptiveBannerAd
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.components.AddReelDialog
 import com.danstudios.reelnotes.ui.components.AppLogo
@@ -194,7 +195,7 @@ fun NotesListScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 32.dp)
-                            .padding(bottom = 100.dp),
+                            .padding(bottom = 160.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -287,7 +288,7 @@ fun NotesListScreen(
                             start = 16.dp,
                             end = 16.dp,
                             top = 8.dp,
-                            bottom = 100.dp
+                            bottom = 160.dp
                         ),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -302,29 +303,37 @@ fun NotesListScreen(
                 }
             }
 
-            // Floating Bottom Bar anchored at the bottom
+            // Bottom Layout: FloatingBottomBar + Adaptive Banner Ad
             val selectedTab = if (onlyFavorites) BottomBarTab.FAVORITES else BottomBarTab.NOTES
-            FloatingBottomBar(
-                selectedTab = selectedTab,
-                onTabSelected = { tab ->
-                    when (tab) {
-                        BottomBarTab.NOTES -> {
-                            if (onlyFavorites) viewModel.toggleOnlyFavorites()
-                            viewModel.setCategory(null)
-                        }
-                        BottomBarTab.FAVORITES -> {
-                            if (!onlyFavorites) viewModel.toggleOnlyFavorites()
-                        }
-                        BottomBarTab.SETTINGS -> {
-                            onSettingsClick()
-                        }
-                    }
-                },
-                onAddClick = { showAddDialog = true },
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-            )
+                    .fillMaxWidth()
+                    .navigationBarsPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                FloatingBottomBar(
+                    selectedTab = selectedTab,
+                    onTabSelected = { tab ->
+                        when (tab) {
+                            BottomBarTab.NOTES -> {
+                                if (onlyFavorites) viewModel.toggleOnlyFavorites()
+                                viewModel.setCategory(null)
+                            }
+                            BottomBarTab.FAVORITES -> {
+                                if (!onlyFavorites) viewModel.toggleOnlyFavorites()
+                            }
+                            BottomBarTab.SETTINGS -> {
+                                onSettingsClick()
+                            }
+                        }
+                    },
+                    onAddClick = { showAddDialog = true },
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                AdaptiveBannerAd()
+            }
         }
     }
 

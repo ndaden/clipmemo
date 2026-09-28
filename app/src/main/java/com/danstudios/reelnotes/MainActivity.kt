@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.danstudios.reelnotes.ads.InterstitialAdController
 import com.danstudios.reelnotes.ui.navigation.Screen
 import com.danstudios.reelnotes.ui.screens.NoteDetailScreen
 import com.danstudios.reelnotes.ui.screens.NotesListScreen
@@ -81,10 +82,12 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val navController = rememberNavController()
 
-                        // Automatically navigate to note details when a new note is processed
+                        // Automatically show interstitial ad then navigate to note details when a new note is processed
                         LaunchedEffect(Unit) {
                             viewModel.newlyCreatedNoteId.collectLatest { noteId ->
-                                navController.navigate(Screen.NoteDetail.createRoute(noteId))
+                                InterstitialAdController.showInterstitial(this@MainActivity) {
+                                    navController.navigate(Screen.NoteDetail.createRoute(noteId))
+                                }
                             }
                         }
 

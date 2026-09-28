@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.danstudios.reelnotes.R
+import com.danstudios.reelnotes.ads.AdaptiveBannerAd
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.components.RecipeChecklist
 import com.danstudios.reelnotes.ui.components.StepList
@@ -527,7 +528,7 @@ fun NoteDetailScreen(
                     Spacer(modifier = Modifier.height(32.dp))
                 }
 
-                Spacer(modifier = Modifier.navigationBarsPadding().height(24.dp))
+                Spacer(modifier = Modifier.navigationBarsPadding().height(70.dp))
             }
         }
 
@@ -587,6 +588,16 @@ fun NoteDetailScreen(
                     onClick = { showDeleteConfirm = true }
                 )
             }
+        }
+
+        // Anchored Adaptive Banner Ad at bottom
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .navigationBarsPadding()
+        ) {
+            AdaptiveBannerAd()
         }
     }
 
