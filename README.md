@@ -1,9 +1,9 @@
-# 📱 ReelNotes - Transformez vos Reels Instagram en Notes Structurées
+# 📱 ClipMemo - Transformez vos Reels Instagram en Notes Structurées
 
-**ReelNotes** est une application Android moderne développée en **Kotlin** et **Jetpack Compose (Material 3)**. Elle permet de capturer n'importe quel Reel Instagram partagé depuis l'application officielle, d'en extraire le contenu et de le synthétiser automatiquement sous forme de fiches pratiques (recettes de cuisine avec liste d'ingrédients à cocher, routines sportives, tutoriels, astuces, etc.) sauvegardées localement.
+**ClipMemo** est une application Android moderne développée en **Kotlin** et **Jetpack Compose (Material 3)**. Elle permet de capturer n'importe quel Reel Instagram partagé depuis l'application officielle, d'en extraire le contenu et de le synthétiser automatiquement sous forme de fiches pratiques (recettes de cuisine avec liste d'ingrédients à cocher, routines sportives, tutoriels, astuces, etc.) sauvegardées localement.
 
 <p align="center">
-  <img src="docs/screenshots/home_screen.png" width="30%" alt="Accueil ReelNotes" />
+  <img src="docs/screenshots/home_screen.png" width="30%" alt="Accueil ClipMemo" />
   &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="docs/screenshots/recipe_detail.png" width="30%" alt="Fiche Recette" />
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -16,7 +16,7 @@
 
 ### 1. 📲 Partage direct depuis Instagram (Android Share Target)
 - Vous naviguez sur Instagram et trouvez un Reel intéressant (recette, entraînement, astuce bricolage, tech...).
-- Appuyez sur **Partager** > Sélectionnez **ReelNotes**.
+- Appuyez sur **Partager** > Sélectionnez **ClipMemo**.
 - L'application s'ouvre, nettoie les paramètres de tracking (`?igsh=...`), télécharge les métadonnées et la légende, structure le contenu et enregistre la note automatiquement.
 
 ### 2. 🧠 Double Moteur d'Extraction & Structuration
@@ -137,7 +137,7 @@ Le wrapper Gradle embarque l'environnement requis :
 1. **Lancement initial :** À la première ouverture, des exemples réalistes sont chargés automatiquement (une recette de pâtes crémeuses à l'ail et parmesan, une routine fitness sans matériel, et une astuce tech pour Android).
 2. **Depuis Instagram :** 
    - Cliquez sur l'icône de partage sous n'importe quel Reel.
-   - Touchez **Partager via...** puis l'icône **ReelNotes**.
+   - Touchez **Partager via...** puis l'icône **ClipMemo**.
    - La note est générée et s'affiche immédiatement.
 3. **Ajout manuel :**
    - Cliquez sur le bouton flottant **+** en bas à droite de l'écran d'accueil.

@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ReelNotes"
+rootProject.name = "ClipMemo"
 include(":app")
