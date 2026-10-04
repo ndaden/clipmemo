@@ -71,4 +71,39 @@ class ReelNotesViewModelNavigationTest {
         val replayCache = viewModel.navigateToNotesList.replayCache
         assertTrue("Expected no navigation event for blank input", replayCache.isEmpty())
     }
+
+    @Test
+    fun testOnboardingShownOnFirstLaunch() = runTest {
+        val prefs = object : PreferencesManager(null) {
+            override var hasSeenOnboarding: Boolean = false
+        }
+        val viewModel = ReelNotesViewModel(fakeRepository, prefs)
+        assertTrue("Expected showOnboarding to be true on first launch", viewModel.showOnboarding.value)
+    }
+
+    @Test
+    fun testDismissOnboardingPersistsPreference() = runTest {
+        var persisted = false
+        val prefs = object : PreferencesManager(null) {
+            override var hasSeenOnboarding: Boolean
+                get() = persisted
+                set(value) { persisted = value }
+        }
+        val viewModel = ReelNotesViewModel(fakeRepository, prefs)
+        assertTrue(viewModel.showOnboarding.value)
+
+        viewModel.dismissOnboarding()
+
+        assertTrue("Expected hasSeenOnboarding to be persisted as true", prefs.hasSeenOnboarding)
+        assertTrue("Expected showOnboarding StateFlow to become false", !viewModel.showOnboarding.value)
+    }
+
+    @Test
+    fun testOnboardingNotShownWhenAlreadySeen() = runTest {
+        val prefs = object : PreferencesManager(null) {
+            override var hasSeenOnboarding: Boolean = true
+        }
+        val viewModel = ReelNotesViewModel(fakeRepository, prefs)
+        assertTrue("Expected showOnboarding to be false when already seen", !viewModel.showOnboarding.value)
+    }
 }

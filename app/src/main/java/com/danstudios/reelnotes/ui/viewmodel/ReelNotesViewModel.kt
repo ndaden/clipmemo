@@ -50,6 +50,9 @@ class ReelNotesViewModel(
     private val _navigateToNotesList = MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 1)
     val navigateToNotesList: SharedFlow<Unit> = _navigateToNotesList.asSharedFlow()
 
+    private val _showOnboarding = MutableStateFlow(!preferences.hasSeenOnboarding)
+    val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
+
     // All notes unfiltered for counts
     val allNotes: StateFlow<List<ReelNote>> = repository.getAllNotes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -100,6 +103,11 @@ class ReelNotesViewModel(
     fun updateLanguage(lang: String) {
         preferences.preferredLanguage = lang
         _preferredLanguage.value = lang
+    }
+
+    fun dismissOnboarding() {
+        preferences.hasSeenOnboarding = true
+        _showOnboarding.value = false
     }
 
     fun refreshInstagramLoginState() {
