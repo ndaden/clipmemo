@@ -46,6 +46,10 @@ jobs:
 
       - name: Set Kubeconfig
         run: |
+          if [ -z "${{ secrets.KUBECONFIG }}" ]; then
+            echo "::error::Le secret KUBECONFIG est absent de ndaden/clipmemo ! Veuillez l'ajouter dans GitHub (Settings > Secrets > Actions)."
+            exit 1
+          fi
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
