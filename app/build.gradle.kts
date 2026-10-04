@@ -27,7 +27,7 @@ android {
         applicationId = "com.danstudios.clipmemo"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
+        versionCode = 6
         versionName = "1.1.1"
 
         buildConfigField("String", "BACKEND_BASE_URL", "\"$backendBaseUrl\"")
