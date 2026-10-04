@@ -96,4 +96,14 @@
     <string name="error_cannot_open_link">Unable to open link</string>
     <string name="error_cannot_share">Unable to open share menu</string>
     <string name="share_note_title">Share note</string>
+
+    <!-- Onboarding / Welcome Dialog -->
+    <string name="onboarding_title">Welcome to ClipMemo</string>
+    <string name="onboarding_subtitle">Turn Instagram Reels into clean, organized notes in seconds.</string>
+    <string name="onboarding_step_share_title">Share &amp; Capture</string>
+    <string name="onboarding_step_share_desc">Share an Instagram Reel straight to ClipMemo or paste its link. AI automatically extracts steps, ingredients, or key takeaways.</string>
+    <string name="onboarding_step_insta_title">Instagram Login (Optional)</string>
+    <string name="onboarding_step_insta_desc">The app works without an account. You can optionally link your Instagram account in Settings to analyze private or age-restricted Reels.</string>
+    <string name="onboarding_btn_start">Get Started</string>
+    <string name="onboarding_btn_connect_insta">Connect Instagram</string>
 </resources>

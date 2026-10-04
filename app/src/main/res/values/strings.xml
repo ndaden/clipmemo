@@ -96,4 +96,14 @@
     <string name="error_cannot_open_link">Impossible d\'ouvrir le lien</string>
     <string name="error_cannot_share">Impossible d\'ouvrir le menu de partage</string>
     <string name="share_note_title">Partager la note</string>
+
+    <!-- Onboarding / Welcome Dialog -->
+    <string name="onboarding_title">Bienvenue sur ClipMemo</string>
+    <string name="onboarding_subtitle">Transformez vos Reels Instagram en fiches claires et organisées en un instant.</string>
+    <string name="onboarding_step_share_title">Partagez &amp; Capturez</string>
+    <string name="onboarding_step_share_desc">Partagez un Reel Instagram directement vers ClipMemo ou collez son lien. L\'IA extrait automatiquement les étapes, ingrédients ou points clés.</string>
+    <string name="onboarding_step_insta_title">Connexion Instagram (Optionnelle)</string>
+    <string name="onboarding_step_insta_desc">L\'application fonctionne sans compte. Vous pouvez toutefois connecter votre compte Instagram dans les Paramètres pour analyser les Reels privés ou avec restriction d\'âge.</string>
+    <string name="onboarding_btn_start">C\'est parti !</string>
+    <string name="onboarding_btn_connect_insta">Connecter Instagram</string>
 </resources>
