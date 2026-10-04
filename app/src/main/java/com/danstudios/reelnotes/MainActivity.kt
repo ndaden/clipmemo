@@ -91,6 +91,31 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
+                        // Automatically navigate back to notes list when reel processing starts
+                        LaunchedEffect(Unit) {
+                            viewModel.navigateToNotesList.collectLatest {
+                                navController.navigate(Screen.NotesList.route) {
+                                    popUpTo(Screen.NotesList.route) {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+
+                        LaunchedEffect(Unit) {
+                            viewModel.isProcessing.collectLatest { isProcessing ->
+                                if (isProcessing) {
+                                    navController.navigate(Screen.NotesList.route) {
+                                        popUpTo(Screen.NotesList.route) {
+                                            inclusive = false
+                                        }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+
                         NavHost(
                             navController = navController,
                             startDestination = Screen.NotesList.route
