@@ -9,7 +9,7 @@ Ce service léger en **Node.js / TypeScript (Fastify)** sert de passerelle sécu
 - **Protection anti-abus :**
   - Authentification par en-tête `X-App-Key`.
   - Rate limiting automatique (60 requêtes/minute par IP).
-- **Fallback automatique :** Essai sur `gemini-2.5-flash`, puis repli sur `gemini-2.0-flash` en cas de 429/503.
+- **Fallback automatique :** Essai sur `gemini-3.5-flash`, puis repli sur `gemini-3.8-flash` et `gemini-3.5-flash-lite` en cas d'erreur ou quota.
 - **Support Multimodal & Texte :** Reçoit soit une légende brute, soit un flux vidéo/audio pour transcription et mise en forme.
 
 ---

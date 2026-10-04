@@ -71,8 +71,8 @@ jobs:
             --namespace clipmemo \
             --from-literal=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
             --from-literal=APP_SECRET_KEY="${{ secrets.APP_SECRET_KEY }}" \
-            --from-literal=GEMINI_MODEL="${{ secrets.GEMINI_MODEL || 'gemini-2.5-flash' }}" \
-            --from-literal=GEMINI_FALLBACK_MODEL="${{ secrets.GEMINI_FALLBACK_MODEL || 'gemini-2.0-flash' }}" \
+            --from-literal=GEMINI_MODEL="${{ secrets.GEMINI_MODEL || 'gemini-3.5-flash' }}" \
+            --from-literal=GEMINI_FALLBACK_MODEL="${{ secrets.GEMINI_FALLBACK_MODEL || 'gemini-3.8-flash' }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Update Deployment Image Version

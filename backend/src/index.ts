@@ -10,8 +10,8 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 const HOST = process.env.HOST || "0.0.0.0";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const APP_SECRET_KEY = process.env.APP_SECRET_KEY || "";
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || "gemini-2.0-flash";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.8-flash";
 
 const server = fastify({
   logger: true,
@@ -93,7 +93,7 @@ async function callGeminiApi(
     throw new Error("GEMINI_API_KEY is not configured on the backend server.");
   }
 
-  const models = [DEFAULT_MODEL, FALLBACK_MODEL, "gemini-1.5-flash"];
+  const models = [DEFAULT_MODEL, FALLBACK_MODEL, "gemini-3.5-flash-lite"];
   let lastError: any = null;
 
   for (const model of models) {
