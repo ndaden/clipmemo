@@ -32,7 +32,9 @@ import com.danstudios.reelnotes.ui.components.AppLogo
 import com.danstudios.reelnotes.ui.components.BottomBarTab
 import com.danstudios.reelnotes.ui.components.CategoryChipRow
 import com.danstudios.reelnotes.ui.components.FloatingBottomBar
+import com.danstudios.reelnotes.ui.components.InstagramLoginDialog
 import com.danstudios.reelnotes.ui.components.NoteCard
+import com.danstudios.reelnotes.ui.components.OnboardingDialog
 import com.danstudios.reelnotes.ui.components.ProcessingOverlay
 import com.danstudios.reelnotes.ui.theme.*
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
@@ -52,8 +54,10 @@ fun NotesListScreen(
     val isProcessing by viewModel.isProcessing.collectAsState()
     val processingStatus by viewModel.processingStatus.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val showOnboarding by viewModel.showOnboarding.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
+    var showInstagramLoginDialog by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -320,6 +324,23 @@ fun NotesListScreen(
                     context = context
                 )
             }
+        )
+    }
+
+    if (showOnboarding) {
+        OnboardingDialog(
+            onDismiss = { viewModel.dismissOnboarding() },
+            onConnectInstagram = {
+                viewModel.dismissOnboarding()
+                showInstagramLoginDialog = true
+            }
+        )
+    }
+
+    if (showInstagramLoginDialog) {
+        InstagramLoginDialog(
+            onDismiss = { showInstagramLoginDialog = false },
+            onLoginSuccess = { showInstagramLoginDialog = false }
         )
     }
 
