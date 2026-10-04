@@ -47,6 +47,9 @@ class ReelNotesViewModel(
     private val _newlyCreatedNoteId = MutableSharedFlow<Long>()
     val newlyCreatedNoteId: SharedFlow<Long> = _newlyCreatedNoteId.asSharedFlow()
 
+    private val _navigateToNotesList = MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 1)
+    val navigateToNotesList: SharedFlow<Unit> = _navigateToNotesList.asSharedFlow()
+
     // All notes unfiltered for counts
     val allNotes: StateFlow<List<ReelNote>> = repository.getAllNotes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -151,6 +154,8 @@ class ReelNotesViewModel(
         onFinished: ((Long) -> Unit)? = null
     ) {
         if (sharedText.isBlank()) return
+
+        _navigateToNotesList.tryEmit(Unit)
 
         viewModelScope.launch {
             _isProcessing.value = true
