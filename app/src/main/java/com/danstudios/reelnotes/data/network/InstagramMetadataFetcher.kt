@@ -127,7 +127,7 @@ object InstagramMetadataFetcher {
         try {
             val req = Request.Builder()
                 .url(cleanUrl)
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                .header("User-Agent", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)")
                 .build()
             client.newCall(req).execute().use { response ->
                 if (response.isSuccessful) {
@@ -179,26 +179,35 @@ object InstagramMetadataFetcher {
         val isLoginRequired = html.contains("Connectez-vous pour continuer") && !html.contains("video_url")
 
         // 1. Author
+        val ogUrlRegex = Regex("""(?:property=["']og:url["'][^>]*content=["']https://www\.instagram\.com/([^/]+)/reel/|content=["']https://www\.instagram\.com/([^/]+)/reel/[^>]*property=["']og:url["'])""")
+        val ogAuthor = ogUrlRegex.find(html)?.let {
+            val user = it.groupValues[1].ifEmpty { it.groupValues[2] }
+            if (user.isNotEmpty()) "@$user" else null
+        }
         val authorRegex = Regex("""(?:class="FeedbackAuthor-author"[^>]*>|@)([A-Za-z0-9_.]+)""")
         val authorMatch = authorRegex.find(html)
-        val author = authorMatch?.groupValues?.get(1)?.let { "@$it" }
+        val author = ogAuthor ?: authorMatch?.groupValues?.get(1)?.let { "@$it" }
 
         // 2. Thumbnail
         val imgRegex = Regex("""<img[^>]+class="EmbeddedMediaImage"[^>]+src="([^">]+)"""")
-        val ogImgRegex = Regex("""<meta\s+property="og:image"\s+content="([^">]+)"""")
+        val ogImgRegex = Regex("""<meta\s+[^>]*(?:property=["']og:image["'][^>]*content=(?:"([^"]+)"|'([^']+)')|content=(?:"([^"]+)"|'([^']+)')[^>]*property=["']og:image["'])""")
         val thumb = imgRegex.find(html)?.groupValues?.get(1)
-            ?: ogImgRegex.find(html)?.groupValues?.get(1)
+            ?: ogImgRegex.find(html)?.let {
+                it.groupValues[1].ifEmpty { it.groupValues[2] }.ifEmpty { it.groupValues[3] }.ifEmpty { it.groupValues[4] }
+            }
 
         // 3. Caption / Description
         val captionRegex = Regex("""<div\s+class="Caption"[^>]*>(.*?)</div>""", RegexOption.DOT_MATCHES_ALL)
         var caption = captionRegex.find(html)?.groupValues?.get(1) ?: ""
         if (caption.isBlank()) {
-            val ogDescRegex = Regex("""<meta\s+property="og:description"\s+content="([^">]+)"""")
-            caption = ogDescRegex.find(html)?.groupValues?.get(1) ?: ""
+            val ogDescRegex = Regex("""<meta\s+[^>]*(?:property=["']og:description["'][^>]*content=(?:"([^"]*)"|'([^']*)')|content=(?:"([^"]*)"|'([^']*)')[^>]*property=["']og:description["'])""")
+            caption = ogDescRegex.find(html)?.let {
+                it.groupValues[1].ifEmpty { it.groupValues[2] }.ifEmpty { it.groupValues[3] }.ifEmpty { it.groupValues[4] }
+            } ?: ""
         }
 
         // Clean HTML tags inside caption
-        val cleanCaption = caption
+        var cleanCaption = caption
             .replace(Regex("""<br\s*/?>"""), "\n")
             .replace(Regex("""<[^>]+>"""), "")
             .replace("&amp;", "&")
@@ -208,9 +217,24 @@ object InstagramMetadataFetcher {
             .replace("&#39;", "'")
             .trim()
 
+        cleanCaption = cleanCaption
+            .replace(Regex("""^[0-9.,]+[KkMm]?\s+likes?,\s+[0-9.,]+[KkMm]?\s+comments?\s+-\s+[A-Za-z0-9_.]+\s+on\s+[^:]+:\s*["“«]"""), "")
+            .replace(Regex("""["”»]\.?\s*$"""), "")
+            .trim()
+
         // 4. Title
         val titleRegex = Regex("""<title>([^<]+)</title>""")
+        val ogTitleRegex = Regex("""<meta\s+[^>]*(?:property=["']og:title["'][^>]*content=(?:"([^"]*)"|'([^']*)')|content=(?:"([^"]*)"|'([^']*)')[^>]*property=["']og:title["'])""")
         val title = titleRegex.find(html)?.groupValues?.get(1)?.trim()
+            ?: ogTitleRegex.find(html)?.let {
+                val rawTitle = it.groupValues[1].ifEmpty { it.groupValues[2] }.ifEmpty { it.groupValues[3] }.ifEmpty { it.groupValues[4] }
+                rawTitle.replace("&amp;", "&")
+                    .replace("&lt;", "<")
+                    .replace("&gt;", ">")
+                    .replace("&quot;", "\"")
+                    .replace("&#39;", "'")
+                    .trim()
+            }
 
         return FetchedReelMetadata(
             caption = cleanCaption,
