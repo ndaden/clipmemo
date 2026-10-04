@@ -25,7 +25,6 @@
     <string name="empty_search_title">No results found</string>
     <string name="empty_search_subtitle">Check your spelling or try different keywords.</string>
     <string name="empty_category_title">No notes in this category</string>
-    <string name="load_sample_data">Load sample notes</string>
 
     <!-- Add Reel Dialog -->
     <string name="add_reel_title">Add Reel</string>
@@ -62,15 +61,6 @@
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
-    <string name="settings_gemini_title">Transcription &amp; Analysis</string>
-    <string name="settings_gemini_desc">The Gemini key enables audio transcription and automatic note formatting.</string>
-    <string name="api_key_label">Google Gemini API Key</string>
-    <string name="api_key_placeholder">AIzaSy...</string>
-    <string name="api_key_warning">Google AI Studio keys usually start with \'AIzaSy\'.</string>
-    <string name="btn_test_key">Test Key</string>
-    <string name="btn_testing">Testing...</string>
-    <string name="btn_save">Save</string>
-    <string name="get_free_key_link">Get a free Gemini key (Google AI Studio)</string>
     <string name="settings_instagram_title">Instagram Session</string>
     <string name="settings_instagram_desc">Optional. Required for age-restricted Reels or private accounts.</string>
     <string name="status_connected">Connected to Instagram</string>
@@ -83,17 +73,11 @@
     <string name="settings_language_desc">Sets the interface language and the language for generated notes.</string>
     <string name="lang_french">Français</string>
     <string name="lang_english">English</string>
-    <string name="settings_data_title">Sample Data</string>
-    <string name="settings_data_desc">Load sample notes (recipes, workouts, tips) to explore the interface.</string>
-    <string name="btn_reload_samples">Reload sample notes</string>
     <string name="settings_about_title">About ClipMemo</string>
     <string name="app_version">ClipMemo v1.0.1</string>
     <string name="settings_about_desc">Turns Instagram Reels into clean, structured notes.</string>
-    <string name="toast_key_required">Please enter an API key first</string>
-    <string name="toast_key_saved">API key saved</string>
     <string name="toast_login_success">Instagram login successful</string>
     <string name="toast_logged_out">Logged out</string>
-    <string name="toast_samples_loaded">Sample notes loaded</string>
     <string name="btn_back">Back</string>
     <string name="content_desc_hide">Hide</string>
     <string name="content_desc_show">Show</string>

@@ -50,7 +50,7 @@ reelnotes/
 │   │   ├── main/
 │   │   │   ├── AndroidManifest.xml              # Déclaration Intent Filter ACTION_SEND
 │   │   │   ├── java/com/danstudios/reelnotes/
-│   │   │   │   ├── ReelNotesApp.kt              # Initialisation DB & Sample data
+│   │   │   │   ├── ReelNotesApp.kt              # Initialisation DB & SDK AdMob
 │   │   │   │   ├── MainActivity.kt              # Point d'entrée & gestion des Intents de partage
 │   │   │   │   ├── data/
 │   │   │   │   │   ├── local/
@@ -61,10 +61,8 @@ reelnotes/
 │   │   │   │   │   ├── network/
 │   │   │   │   │   │   ├── InstagramMetadataFetcher.kt # Extraction métadonnées & embed
 │   │   │   │   │   │   └── GeminiSummarizer.kt         # Client REST Gemini 2.0 Flash
-│   │   │   │   │   ├── repository/
-│   │   │   │   │   │   └── ReelNoteRepository.kt       # Repository unique Room/Network
-│   │   │   │   │   └── util/
-│   │   │   │   │       └── SampleDataProvider.kt       # Exemples réalistes (recette, sport, astuce)
+│   │   │   │   │   └── repository/
+│   │   │   │   │       └── ReelNoteRepository.kt       # Repository unique Room/Network
 │   │   │   │   ├── domain/
 │   │   │   │   │   ├── model/
 │   │   │   │   │   │   ├── NoteCategory.kt         # Enum catégories avec émojis

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: clipmemo-api-svc
+  namespace: clipmemo
+spec:
+  type: ClusterIP
+  selector:
+    app: clipmemo-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000

@@ -14,7 +14,6 @@ object ReelExtractionPipeline {
 
     suspend fun processReel(
         sharedInput: String,
-        apiKey: String? = null,
         preferredLanguage: String = "fr",
         manualCaption: String? = null,
         context: Context? = null,
@@ -57,22 +56,21 @@ object ReelExtractionPipeline {
 
         var aiResult: GeminiAiOutput? = null
 
-        // 3. Multimodal analysis (watching and listening to the video / audio stream)
-        if (!apiKey.isNullOrBlank() && fetchedMeta.mediaBytes != null && fetchedMeta.mediaMimeType != null) {
+        // 3. Multimodal analysis via backend proxy (watching and listening to the video / audio stream)
+        if (fetchedMeta.mediaBytes != null && fetchedMeta.mediaMimeType != null) {
             onProgressUpdate?.invoke("L'IA écoute et analyse la vidéo du Reel...")
             aiResult = GeminiSummarizer.summarizeMultimodal(
                 mediaBytes = fetchedMeta.mediaBytes,
                 mimeType = fetchedMeta.mediaMimeType,
                 captionContext = combinedCaption,
-                apiKey = apiKey,
                 preferredLanguage = preferredLanguage
             )
         }
 
-        // 4. Text-only fallback if multimodal wasn't applicable or failed
-        if (aiResult == null && !apiKey.isNullOrBlank() && combinedCaption.isNotBlank()) {
+        // 4. Text-only fallback via backend proxy if multimodal wasn't applicable or failed
+        if (aiResult == null && combinedCaption.isNotBlank()) {
             onProgressUpdate?.invoke("L'IA analyse les instructions textuelles...")
-            aiResult = GeminiSummarizer.summarize(combinedCaption, apiKey, preferredLanguage)
+            aiResult = GeminiSummarizer.summarize(combinedCaption, preferredLanguage)
         }
 
         // 5. Build structured note if AI succeeded
@@ -114,8 +112,8 @@ object ReelExtractionPipeline {
             )
         }
 
-        // 6. If API key is configured but neither media nor caption could be obtained
-        if (!apiKey.isNullOrBlank() && combinedCaption.isBlank() && fetchedMeta.mediaBytes == null) {
+        // 6. If neither media nor caption could be obtained
+        if (combinedCaption.isBlank() && fetchedMeta.mediaBytes == null) {
             throw InstagramRestrictedException(
                 "Impossible d'extraire le flux vidéo ou la légende de ce Reel Instagram. Le contenu nécessite peut-être une connexion. Connectez votre compte Instagram dans les Paramètres pour débloquer l'accès ou collez la légende via le bouton '+'."
             )

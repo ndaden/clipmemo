@@ -6,6 +6,19 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        load(localPropertiesFile.inputStream())
+    }
+}
+val backendBaseUrl = System.getenv("BACKEND_BASE_URL")
+    ?: localProperties.getProperty("backend.base.url", "http://10.0.2.2:3000")
+val backendAppKey = System.getenv("BACKEND_APP_KEY")
+    ?: localProperties.getProperty("backend.app.key", "clipmemo_secret_app_key_2026")
+
 android {
     namespace = "com.danstudios.reelnotes"
     compileSdk = 36
@@ -17,24 +30,34 @@ android {
         versionCode = 4
         versionName = "1.1.0"
 
+        buildConfigField("String", "BACKEND_BASE_URL", "\"$backendBaseUrl\"")
+        buildConfigField("String", "BACKEND_APP_KEY", "\"$backendAppKey\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
     }
 
+    val releaseKeystoreFile = file("release.keystore")
     signingConfigs {
         create("release") {
-            storeFile = file("release.keystore")
-            storePassword = "clipmemo2026"
-            keyAlias = "clipmemo"
-            keyPassword = "clipmemo2026"
+            if (releaseKeystoreFile.exists()) {
+                storeFile = releaseKeystoreFile
+                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "clipmemo2026"
+                keyAlias = System.getenv("KEY_ALIAS") ?: "clipmemo"
+                keyPassword = System.getenv("KEY_PASSWORD") ?: "clipmemo2026"
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (releaseKeystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

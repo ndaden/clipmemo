@@ -25,7 +25,6 @@
     <string name="empty_search_title">Aucun résultat trouvé</string>
     <string name="empty_search_subtitle">Vérifiez l\'orthographe ou essayez d\'autres mots-clés.</string>
     <string name="empty_category_title">Aucune note dans cette catégorie</string>
-    <string name="load_sample_data">Charger des exemples de notes</string>
 
     <!-- Add Reel Dialog -->
     <string name="add_reel_title">Ajouter un Reel</string>
@@ -62,15 +61,6 @@
 
     <!-- Settings Screen -->
     <string name="settings_title">Paramètres</string>
-    <string name="settings_gemini_title">Transcription &amp; Analyse</string>
-    <string name="settings_gemini_desc">La clé Gemini permet la transcription audio et la mise en forme automatique des fiches.</string>
-    <string name="api_key_label">Clé API Google Gemini</string>
-    <string name="api_key_placeholder">AIzaSy...</string>
-    <string name="api_key_warning">Les clés Google AI Studio débutent généralement par \'AIzaSy\'.</string>
-    <string name="btn_test_key">Tester la clé</string>
-    <string name="btn_testing">Test...</string>
-    <string name="btn_save">Enregistrer</string>
-    <string name="get_free_key_link">Obtenir une clé Gemini gratuite (Google AI Studio)</string>
     <string name="settings_instagram_title">Session Instagram</string>
     <string name="settings_instagram_desc">Optionnel. Requis pour les Reels avec restriction d\'âge ou de comptes privés.</string>
     <string name="status_connected">Connecté à Instagram</string>
@@ -83,17 +73,11 @@
     <string name="settings_language_desc">Définit la langue de l\'interface et des fiches générées.</string>
     <string name="lang_french">Français</string>
     <string name="lang_english">English</string>
-    <string name="settings_data_title">Données de démonstration</string>
-    <string name="settings_data_desc">Charger des exemples de notes (recettes, sport, astuces) pour tester l\'application.</string>
-    <string name="btn_reload_samples">Recharger les exemples</string>
     <string name="settings_about_title">À propos de ClipMemo</string>
     <string name="app_version">ClipMemo v1.0.1</string>
     <string name="settings_about_desc">Transforme les Reels Instagram en fiches structurées et pratiques.</string>
-    <string name="toast_key_required">Veuillez entrer une clé d\'abord</string>
-    <string name="toast_key_saved">Clé API enregistrée</string>
     <string name="toast_login_success">Connexion Instagram réussie</string>
     <string name="toast_logged_out">Déconnexion effectuée</string>
-    <string name="toast_samples_loaded">Exemples ajoutés avec succès</string>
     <string name="btn_back">Retour</string>
     <string name="content_desc_hide">Masquer</string>
     <string name="content_desc_show">Afficher</string>

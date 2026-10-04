@@ -8,7 +8,6 @@ import com.danstudios.reelnotes.data.local.PreferencesManager
 import com.danstudios.reelnotes.data.network.GeminiSummarizer
 import com.danstudios.reelnotes.data.network.InstagramSessionManager
 import com.danstudios.reelnotes.data.repository.ReelNoteRepository
-import com.danstudios.reelnotes.data.util.SampleDataProvider
 import com.danstudios.reelnotes.domain.extractor.InstagramRestrictedException
 import com.danstudios.reelnotes.domain.extractor.ReelExtractionPipeline
 import com.danstudios.reelnotes.domain.model.NoteCategory
@@ -38,9 +37,6 @@ class ReelNotesViewModel(
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    private val _geminiApiKey = MutableStateFlow(preferences.geminiApiKey)
-    val geminiApiKey: StateFlow<String> = _geminiApiKey.asStateFlow()
 
     private val _preferredLanguage = MutableStateFlow(preferences.preferredLanguage)
     val preferredLanguage: StateFlow<String> = _preferredLanguage.asStateFlow()
@@ -98,11 +94,6 @@ class ReelNotesViewModel(
         _errorMessage.value = null
     }
 
-    fun updateApiKey(key: String) {
-        preferences.geminiApiKey = key
-        _geminiApiKey.value = key
-    }
-
     fun updateLanguage(lang: String) {
         preferences.preferredLanguage = lang
         _preferredLanguage.value = lang
@@ -115,13 +106,6 @@ class ReelNotesViewModel(
     fun logoutInstagram() {
         InstagramSessionManager.logout {
             _isInstagramLoggedIn.value = false
-        }
-    }
-
-    fun testGeminiKey(key: String, onComplete: (Result<String>) -> Unit) {
-        viewModelScope.launch {
-            val result = GeminiSummarizer.testApiKey(key)
-            onComplete(result)
         }
     }
 
@@ -174,7 +158,6 @@ class ReelNotesViewModel(
             try {
                 val note = ReelExtractionPipeline.processReel(
                     sharedInput = sharedText,
-                    apiKey = preferences.geminiApiKey.ifBlank { null },
                     preferredLanguage = preferences.preferredLanguage,
                     manualCaption = manualCaption,
                     context = context,
@@ -195,12 +178,6 @@ class ReelNotesViewModel(
                 _isProcessing.value = false
                 _processingStatus.value = ""
             }
-        }
-    }
-
-    fun reloadSampleData() {
-        viewModelScope.launch {
-            repository.insertAll(SampleDataProvider.getSampleNotes())
         }
     }
 

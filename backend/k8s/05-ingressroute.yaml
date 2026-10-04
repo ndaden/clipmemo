@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: clipmemo-api
+  namespace: clipmemo
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`clipmemo.dnabil.ovh`)
+      kind: Rule
+      services:
+        - name: clipmemo-api-svc
+          port: 80
+  tls:
+    secretName: clipmemo-tls-secret

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clipmemo-api
+  namespace: clipmemo
+  labels:
+    app: clipmemo-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clipmemo-api
+  template:
+    metadata:
+      labels:
+        app: clipmemo-api
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: clipmemo-api
+          image: ghcr.io/ndaden/clipmemo-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: PORT
+              value: "3000"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: NODE_ENV
+              value: "production"
+            - name: GEMINI_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: clipmemo-secrets
+                  key: GEMINI_MODEL
+            - name: GEMINI_FALLBACK_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: clipmemo-secrets
+                  key: GEMINI_FALLBACK_MODEL
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: clipmemo-secrets
+                  key: GEMINI_API_KEY
+            - name: APP_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: clipmemo-secrets
+                  key: APP_SECRET_KEY
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10

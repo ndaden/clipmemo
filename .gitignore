@@ -21,9 +21,16 @@ keystore.properties
 google-services.json
 .env
 .env.*
+!.env.example
 *.log
+
+# Node / Backend
+node_modules/
+dist/
+npm-debug.log*
 
 # IDE & OS
 /.idea/
 .DS_Store
 Thumbs.db
+

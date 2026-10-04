@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.*
@@ -252,33 +251,6 @@ fun NotesListScreen(
                                 textAlign = TextAlign.Center,
                                 lineHeight = 19.sp
                             )
-
-                            if (allNotes.isEmpty()) {
-                                Spacer(modifier = Modifier.height(24.dp))
-                                Button(
-                                    onClick = { viewModel.reloadSampleData() },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = DarkSurfaceElevated,
-                                        contentColor = NeonVioletLight
-                                    ),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, DarkBorder),
-                                    shape = RoundedCornerShape(14.dp),
-                                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Refresh,
-                                        contentDescription = null,
-                                        tint = NeonVioletLight,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = stringResource(R.string.load_sample_data),
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
-                                    )
-                                }
-                            }
                         }
                     }
                 } else {

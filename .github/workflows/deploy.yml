@@ -1,0 +1,88 @@
+name: Build and Deploy ClipMemo API to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set lower case repository name
+        run: echo "REPO=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
+      - name: Build and push API Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.REPO }}/clipmemo-api:latest
+            ghcr.io/${{ env.REPO }}/clipmemo-api:${{ github.sha }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Set Kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Create Namespace and Apply Secrets
+        run: |
+          kubectl create namespace clipmemo --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Secret pour télécharger l'image depuis GHCR (utilise un PAT ou fallback sur GITHUB_TOKEN)
+          kubectl create secret docker-registry ghcr-pull-secret \
+            --namespace clipmemo \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password="${{ secrets.GHCR_PULL_TOKEN || secrets.GITHUB_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+            
+          # Secrets applicatifs
+          kubectl create secret generic clipmemo-secrets \
+            --namespace clipmemo \
+            --from-literal=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            --from-literal=APP_SECRET_KEY="${{ secrets.APP_SECRET_KEY }}" \
+            --from-literal=GEMINI_MODEL="${{ secrets.GEMINI_MODEL || 'gemini-2.5-flash' }}" \
+            --from-literal=GEMINI_FALLBACK_MODEL="${{ secrets.GEMINI_FALLBACK_MODEL || 'gemini-2.0-flash' }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update Deployment Image Version
+        run: |
+          # Remplace l'image fictive par celle venant d'être buildée avec le SHA du commit
+          sed -i "s|ghcr.io/ndaden/clipmemo-api:latest|ghcr.io/${{ env.REPO }}/clipmemo-api:${{ github.sha }}|g" backend/k8s/03-api-deployment.yaml
+
+      - name: Deploy resources to Kubernetes
+        run: |
+          kubectl apply -f backend/k8s/03-api-deployment.yaml
+          kubectl apply -f backend/k8s/04-api-service.yaml
+          kubectl apply -f backend/k8s/05-ingressroute.yaml
+
+      - name: Force Deployment Rollout
+        run: |
+          kubectl rollout restart deployment clipmemo-api -n clipmemo
+          kubectl rollout status deployment clipmemo-api -n clipmemo --timeout=120s
