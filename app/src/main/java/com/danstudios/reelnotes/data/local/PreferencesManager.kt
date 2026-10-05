@@ -8,10 +8,15 @@ open class PreferencesManager(context: Context? = null) {
     private val prefs: SharedPreferences? = context?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     open var preferredLanguage: String
-        get() = prefs?.getString(KEY_PREFERRED_LANGUAGE, "fr") ?: "fr"
+        get() = prefs?.getString(KEY_PREFERRED_LANGUAGE, null) ?: getDefaultLanguage()
         set(value) {
             prefs?.edit()?.putString(KEY_PREFERRED_LANGUAGE, value)?.apply()
         }
+
+    open fun getDefaultLanguage(): String {
+        val systemLang = java.util.Locale.getDefault().language
+        return if (systemLang.startsWith("fr", ignoreCase = true)) "fr" else "en"
+    }
 
     open var hasSeenOnboarding: Boolean
         get() = prefs?.getBoolean(KEY_HAS_SEEN_ONBOARDING, false) ?: false
