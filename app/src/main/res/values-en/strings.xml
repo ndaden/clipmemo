@@ -106,4 +106,9 @@
     <string name="onboarding_step_insta_desc">The app works without an account. You can optionally link your Instagram account in Settings to analyze private or age-restricted Reels.</string>
     <string name="onboarding_btn_start">Get Started</string>
     <string name="onboarding_btn_connect_insta">Connect Instagram</string>
+
+    <!-- Instagram Login Dialog -->
+    <string name="instagram_login_title">Instagram Login</string>
+    <string name="instagram_login_subtitle">Log in to unlock restricted or private Reels.</string>
+    <string name="btn_close">Close</string>
 </resources>

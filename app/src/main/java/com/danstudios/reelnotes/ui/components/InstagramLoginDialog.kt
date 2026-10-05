@@ -14,10 +14,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.data.network.InstagramSessionManager
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -26,6 +30,8 @@ fun InstagramLoginDialog(
     onDismiss: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
     var isLoading by remember { mutableStateOf(true) }
 
     // Periodically poll for session cookie so we detect login immediately
@@ -54,28 +60,32 @@ fun InstagramLoginDialog(
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 6.dp
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                // Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            CompositionLocalProvider(
+                LocalContext provides context,
+                LocalConfiguration provides configuration
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Header
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Connexion Instagram",
+                            text = stringResource(R.string.instagram_login_title),
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = "Connectez-vous pour débloquer les Reels soumis à restriction.",
+                            text = stringResource(R.string.instagram_login_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Fermer")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.btn_close))
                     }
                 }
 
@@ -198,10 +208,11 @@ fun InstagramLoginDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Fermer")
+                        Text(stringResource(R.string.btn_close))
                     }
                 }
             }
         }
     }
+}
 }

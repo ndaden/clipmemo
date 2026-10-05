@@ -106,4 +106,9 @@
     <string name="onboarding_step_insta_desc">L\'application fonctionne sans compte. Vous pouvez toutefois connecter votre compte Instagram dans les Paramètres pour analyser les Reels privés ou avec restriction d\'âge.</string>
     <string name="onboarding_btn_start">C\'est parti !</string>
     <string name="onboarding_btn_connect_insta">Connecter Instagram</string>
+
+    <!-- Instagram Login Dialog -->
+    <string name="instagram_login_title">Connexion Instagram</string>
+    <string name="instagram_login_subtitle">Connectez-vous pour débloquer les Reels soumis à restriction.</string>
+    <string name="btn_close">Fermer</string>
 </resources>
