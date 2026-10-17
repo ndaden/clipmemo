@@ -111,4 +111,10 @@
     <string name="instagram_login_title">Connexion Instagram</string>
     <string name="instagram_login_subtitle">Connectez-vous pour débloquer les Reels soumis à restriction.</string>
     <string name="btn_close">Fermer</string>
+
+    <!-- Reel inaccessible : deux issues proposees -->
+    <string name="restricted_reel_title">Reel inaccessible</string>
+    <string name="restricted_reel_message">Ce Reel est privé ou soumis à une restriction d\'âge. Connectez votre compte Instagram pour y accéder, ou collez vous-même sa légende.</string>
+    <string name="restricted_reel_btn_login">Se connecter</string>
+    <string name="restricted_reel_btn_paste">Coller la légende</string>
 </resources>

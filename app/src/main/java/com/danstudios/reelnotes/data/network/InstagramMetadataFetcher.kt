@@ -142,7 +142,17 @@ object InstagramMetadataFetcher {
         FetchedReelMetadata()
     }
 
-    suspend fun downloadMedia(url: String, maxBytes: Long = 12 * 1024 * 1024): ByteArray? = withContext(Dispatchers.IO) {
+    /**
+     * Plafond de telechargement du flux media.
+     *
+     * Chaque octet telecharge est ensuite encode en base64 (+33%) puis transmis a
+     * Gemini : le plafond pilote donc directement la latence percue et le cout
+     * d'inference. Le flux audio, prefere au flux video dans [fetch], tient tres
+     * largement dans cette limite pour un Reel de duree usuelle.
+     */
+    const val MAX_MEDIA_BYTES: Long = 4L * 1024 * 1024
+
+    suspend fun downloadMedia(url: String, maxBytes: Long = MAX_MEDIA_BYTES): ByteArray? = withContext(Dispatchers.IO) {
         val trimmed = url.trim()
         if (trimmed.isBlank() || trimmed.equals("null", ignoreCase = true) || !trimmed.startsWith("http")) {
             return@withContext null

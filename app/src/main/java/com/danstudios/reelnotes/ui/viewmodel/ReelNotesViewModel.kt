@@ -53,6 +53,15 @@ class ReelNotesViewModel(
     private val _showOnboarding = MutableStateFlow(!preferences.hasSeenOnboarding)
     val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
 
+    /**
+     * Texte partage d'un Reel dont l'extraction a echoue faute d'acces.
+     *
+     * Non nul tant que l'utilisateur n'a pas choisi une issue : se connecter a
+     * Instagram pour relancer l'extraction, ou coller lui-meme la legende.
+     */
+    private val _restrictedReelInput = MutableStateFlow<String?>(null)
+    val restrictedReelInput: StateFlow<String?> = _restrictedReelInput.asStateFlow()
+
     // All notes unfiltered for counts
     val allNotes: StateFlow<List<ReelNote>> = repository.getAllNotes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -108,6 +117,17 @@ class ReelNotesViewModel(
     fun dismissOnboarding() {
         preferences.hasSeenOnboarding = true
         _showOnboarding.value = false
+    }
+
+    fun dismissRestrictedReel() {
+        _restrictedReelInput.value = null
+    }
+
+    /** Relance l'extraction du Reel bloque, typiquement apres une connexion Instagram reussie. */
+    fun retryRestrictedReel(context: Context? = null) {
+        val pending = _restrictedReelInput.value ?: return
+        _restrictedReelInput.value = null
+        processSharedUrl(sharedText = pending, context = context)
     }
 
     fun refreshInstagramLoginState() {
@@ -184,7 +204,15 @@ class ReelNotesViewModel(
                 _newlyCreatedNoteId.emit(savedId)
                 onFinished?.invoke(savedId)
             } catch (e: InstagramRestrictedException) {
-                _errorMessage.value = e.message
+                // Pas de snackbar : l'ecran propose un choix explicite entre
+                // connexion Instagram et collage manuel de la legende.
+                // Si l'utilisateur avait deja fourni une legende, le probleme
+                // ne vient pas de l'acces : on retombe sur un message simple.
+                if (manualCaption.isNullOrBlank()) {
+                    _restrictedReelInput.value = sharedText
+                } else {
+                    _errorMessage.value = e.message
+                }
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Erreur lors du traitement du Reel"
             } finally {

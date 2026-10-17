@@ -126,39 +126,11 @@ fun InstagramLoginDialog(
                                     }
                                 }
 
-                                val autoHelperJs = """
-                                    (function() {
-                                        try {
-                                            // 1. Auto-accept cookie banner if present so login form is immediately accessible
-                                            const buttons = Array.from(document.querySelectorAll('button'));
-                                            const cookieBtn = buttons.find(b => {
-                                                const t = (b.innerText || '').toLowerCase();
-                                                return t.includes('allow all') || 
-                                                       t.includes('autoriser tous') || 
-                                                       t.includes('allow essential') ||
-                                                       t.includes('accepter tout');
-                                            });
-                                            if (cookieBtn) {
-                                                cookieBtn.click();
-                                            }
-
-                                            // 2. If 'tablet app' prompt appears with desktop UA on small screen, click 'Log in'
-                                            const bodyText = (document.body ? document.body.innerText : '').toLowerCase();
-                                            if (bodyText.includes('tablet app') || bodyText.includes('full experience')) {
-                                                const loginBtn = buttons.find(b => {
-                                                    const t = (b.innerText || '').toLowerCase().trim();
-                                                    return t === 'log in' || t === 'se connecter';
-                                                });
-                                                if (loginBtn) {
-                                                    loginBtn.click();
-                                                }
-                                            }
-                                        } catch (e) {}
-                                    })();
-                                """.trimIndent()
-
-                                val handler = android.os.Handler(android.os.Looper.getMainLooper())
-
+                                // Aucun script n'est injecte dans la page Instagram : l'utilisateur
+                                // interagit lui-meme avec la banniere de cookies et le formulaire.
+                                // Cliquer programmatiquement sur les boutons d'un service tiers
+                                // constitue une interaction automatisee, signalee aussi bien par
+                                // la revue Play que par la detection anti-robot de Meta.
                                 webViewClient = object : WebViewClient() {
                                     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                                         super.onPageStarted(view, url, favicon)
@@ -170,11 +142,6 @@ fun InstagramLoginDialog(
                                         super.onPageFinished(view, url)
                                         android.util.Log.d("InstaLoginDialog", "onPageFinished: $url")
                                         isLoading = false
-
-                                        // Inject helper JS immediately and after delays for dynamic React hydration
-                                        view?.evaluateJavascript(autoHelperJs, null)
-                                        handler.postDelayed({ view?.evaluateJavascript(autoHelperJs, null) }, 600)
-                                        handler.postDelayed({ view?.evaluateJavascript(autoHelperJs, null) }, 1500)
 
                                         if (InstagramSessionManager.isLoggedIn()) {
                                             android.util.Log.d("InstaLoginDialog", "User logged in! Triggering onLoginSuccess")

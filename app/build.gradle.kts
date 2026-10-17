@@ -14,10 +14,24 @@ val localProperties = Properties().apply {
         load(localPropertiesFile.inputStream())
     }
 }
-val backendBaseUrl = System.getenv("BACKEND_BASE_URL")
-    ?: localProperties.getProperty("backend.base.url", "http://10.0.2.2:3000")
-val backendAppKey = System.getenv("BACKEND_APP_KEY")
-    ?: localProperties.getProperty("backend.app.key", "clipmemo_secret_app_key_2026")
+/**
+ * Resout une valeur de configuration depuis l'environnement puis local.properties.
+ * Echoue explicitement si elle est absente : un repli silencieux sur une valeur
+ * en dur publierait un binaire porteur d'un secret public.
+ */
+fun requiredConfig(envName: String, propertyName: String): String {
+    val value = System.getenv(envName) ?: localProperties.getProperty(propertyName)
+    if (value.isNullOrBlank()) {
+        throw GradleException(
+            "Configuration manquante : definissez la variable d'environnement " +
+                "$envName ou la propriete $propertyName dans local.properties."
+        )
+    }
+    return value
+}
+
+val backendBaseUrl = requiredConfig("BACKEND_BASE_URL", "backend.base.url")
+val backendAppKey = requiredConfig("BACKEND_APP_KEY", "backend.app.key")
 
 android {
     namespace = "com.danstudios.reelnotes"
@@ -44,9 +58,9 @@ android {
         create("release") {
             if (releaseKeystoreFile.exists()) {
                 storeFile = releaseKeystoreFile
-                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "clipmemo2026"
-                keyAlias = System.getenv("KEY_ALIAS") ?: "clipmemo"
-                keyPassword = System.getenv("KEY_PASSWORD") ?: "clipmemo2026"
+                storePassword = requiredConfig("KEYSTORE_PASSWORD", "keystore.password")
+                keyAlias = requiredConfig("KEY_ALIAS", "key.alias")
+                keyPassword = requiredConfig("KEY_PASSWORD", "key.password")
             }
         }
     }
@@ -58,7 +72,8 @@ android {
             } else {
                 signingConfig = signingConfigs.getByName("debug")
             }
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -111,4 +111,10 @@
     <string name="instagram_login_title">Instagram Login</string>
     <string name="instagram_login_subtitle">Log in to unlock restricted or private Reels.</string>
     <string name="btn_close">Close</string>
+
+    <!-- Restricted reel: two explicit ways forward -->
+    <string name="restricted_reel_title">Reel unavailable</string>
+    <string name="restricted_reel_message">This Reel is private or age-restricted. Connect your Instagram account to access it, or paste its caption yourself.</string>
+    <string name="restricted_reel_btn_login">Log in</string>
+    <string name="restricted_reel_btn_paste">Paste caption</string>
 </resources>

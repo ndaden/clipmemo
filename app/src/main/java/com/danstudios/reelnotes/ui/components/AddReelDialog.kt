@@ -24,9 +24,10 @@ import com.danstudios.reelnotes.ui.theme.*
 @Composable
 fun AddReelDialog(
     onDismiss: () -> Unit,
-    onSubmit: (url: String, manualCaption: String?) -> Unit
+    onSubmit: (url: String, manualCaption: String?) -> Unit,
+    initialUrl: String = ""
 ) {
-    var urlInput by remember { mutableStateOf("") }
+    var urlInput by remember(initialUrl) { mutableStateOf(initialUrl) }
     var captionInput by remember { mutableStateOf("") }
     val clipboardManager = LocalClipboardManager.current
 

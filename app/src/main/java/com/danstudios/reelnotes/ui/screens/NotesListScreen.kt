@@ -55,9 +55,13 @@ fun NotesListScreen(
     val processingStatus by viewModel.processingStatus.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val showOnboarding by viewModel.showOnboarding.collectAsState()
+    val restrictedReelInput by viewModel.restrictedReelInput.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
+    var addDialogInitialUrl by remember { mutableStateOf("") }
     var showInstagramLoginDialog by remember { mutableStateOf(false) }
+    // Texte du Reel bloque a relancer une fois la connexion Instagram etablie.
+    var pendingRetryAfterLogin by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -304,7 +308,10 @@ fun NotesListScreen(
                             }
                         }
                     },
-                    onAddClick = { showAddDialog = true },
+                    onAddClick = {
+                        addDialogInitialUrl = ""
+                        showAddDialog = true
+                    },
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -316,6 +323,7 @@ fun NotesListScreen(
     if (showAddDialog) {
         AddReelDialog(
             onDismiss = { showAddDialog = false },
+            initialUrl = addDialogInitialUrl,
             onSubmit = { url, caption ->
                 showAddDialog = false
                 viewModel.processSharedUrl(
@@ -323,6 +331,55 @@ fun NotesListScreen(
                     manualCaption = caption,
                     context = context
                 )
+            }
+        )
+    }
+
+    // Reel inaccessible : l'utilisateur choisit entre se connecter a Instagram
+    // et fournir lui-meme la legende. Les deux issues sont offertes a parite.
+    // L'entree reste memorisee pendant la connexion pour permettre la relance,
+    // mais la boite est masquee tant que la WebView de login est affichee.
+    restrictedReelInput?.takeIf { !showInstagramLoginDialog }?.let { blockedInput ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissRestrictedReel() },
+            containerColor = DarkSurface,
+            shape = RoundedCornerShape(24.dp),
+            title = {
+                Text(
+                    text = stringResource(R.string.restricted_reel_title),
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.restricted_reel_message),
+                    color = TextSecondary
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        pendingRetryAfterLogin = true
+                        showInstagramLoginDialog = true
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = NeonViolet),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(stringResource(R.string.restricted_reel_btn_login))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        addDialogInitialUrl = blockedInput
+                        viewModel.dismissRestrictedReel()
+                        showAddDialog = true
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = NeonVioletLight)
+                ) {
+                    Text(stringResource(R.string.restricted_reel_btn_paste))
+                }
             }
         )
     }
@@ -339,8 +396,18 @@ fun NotesListScreen(
 
     if (showInstagramLoginDialog) {
         InstagramLoginDialog(
-            onDismiss = { showInstagramLoginDialog = false },
-            onLoginSuccess = { showInstagramLoginDialog = false }
+            onDismiss = {
+                showInstagramLoginDialog = false
+                pendingRetryAfterLogin = false
+            },
+            onLoginSuccess = {
+                showInstagramLoginDialog = false
+                viewModel.refreshInstagramLoginState()
+                if (pendingRetryAfterLogin) {
+                    pendingRetryAfterLogin = false
+                    viewModel.retryRestrictedReel(context)
+                }
+            }
         )
     }
 

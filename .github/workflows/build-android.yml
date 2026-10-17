@@ -21,7 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BACKEND_BASE_URL: ${{ secrets.BACKEND_BASE_URL != '' && secrets.BACKEND_BASE_URL || 'https://clipmemo.dnabil.ovh' }}
-      BACKEND_APP_KEY: ${{ secrets.APP_SECRET_KEY }}
+      # Volontairement NON secret : ce job ne sert qu'a valider la compilation et les tests.
+      # Injecter ici la vraie APP_SECRET_KEY la graverait en clair dans le dex des APK produits.
+      BACKEND_APP_KEY: ci-build-only-not-a-real-key
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,9 +49,6 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
-      - name: Upload APKs as Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: clipmemo-apk
-          path: app/build/outputs/apk/**/*.apk
-          retention-days: 14
+      # Aucun APK n'est publie en artefact : le depot est public, et tout binaire
+      # televersable exposerait les valeurs de BuildConfig a quiconque. Les builds
+      # distribuables sont produits localement et televerses sur la Play Console.

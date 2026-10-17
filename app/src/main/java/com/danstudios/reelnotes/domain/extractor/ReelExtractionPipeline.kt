@@ -47,8 +47,10 @@ object ReelExtractionPipeline {
             combinedCaption.isBlank() &&
             fetchedMeta.mediaBytes == null
         ) {
+            // Le message n'est pas affiche tel quel : l'UI intercepte cette exception
+            // pour proposer les deux issues (connexion Instagram ou collage de legende).
             throw InstagramRestrictedException(
-                "Ce Reel est soumis à des restrictions d'âge ou nécessite une connexion Instagram. Connectez-vous à votre compte dans les Paramètres pour le débloquer."
+                "Reel inaccessible : contenu prive ou soumis a une restriction d'age."
             )
         }
 
@@ -115,7 +117,7 @@ object ReelExtractionPipeline {
         // 6. If neither media nor caption could be obtained
         if (combinedCaption.isBlank() && fetchedMeta.mediaBytes == null) {
             throw InstagramRestrictedException(
-                "Impossible d'extraire le flux vidéo ou la légende de ce Reel Instagram. Le contenu nécessite peut-être une connexion. Connectez votre compte Instagram dans les Paramètres pour débloquer l'accès ou collez la légende via le bouton '+'."
+                "Reel inaccessible : ni le flux media ni la legende n'ont pu etre recuperes."
             )
         }
 
