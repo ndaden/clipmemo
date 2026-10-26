@@ -74,7 +74,7 @@
     <string name="lang_french">Français</string>
     <string name="lang_english">English</string>
     <string name="settings_about_title">About ClipMemo</string>
-    <string name="app_version">ClipMemo v1.0.1</string>
+    <string name="app_version">ClipMemo v1.2.1</string>
     <string name="settings_about_desc">Turns Instagram Reels into clean, structured notes.</string>
     <string name="toast_login_success">Instagram login successful</string>
     <string name="toast_logged_out">Logged out</string>

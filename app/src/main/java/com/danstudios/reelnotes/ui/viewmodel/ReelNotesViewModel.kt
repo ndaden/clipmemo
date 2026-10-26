@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.danstudios.reelnotes.ads.AdPlacementPolicy
 import com.danstudios.reelnotes.data.local.PreferencesManager
 import com.danstudios.reelnotes.data.network.GeminiSummarizer
 import com.danstudios.reelnotes.data.network.InstagramSessionManager
@@ -52,6 +53,12 @@ class ReelNotesViewModel(
 
     private val _showOnboarding = MutableStateFlow(!preferences.hasSeenOnboarding)
     val showOnboarding: StateFlow<Boolean> = _showOnboarding.asStateFlow()
+
+    /**
+     * Indique qu'une nouvelle note vient d'etre creee et que l'interstitiel doit
+     * etre evalue au moment ou l'utilisateur quitte l'ecran de detail (Approche 2).
+     */
+    private var hasPendingPostCreationAdCheck: Boolean = false
 
     /**
      * Texte partage d'un Reel dont l'extraction a echoue faute d'acces.
@@ -117,6 +124,43 @@ class ReelNotesViewModel(
     fun dismissOnboarding() {
         preferences.hasSeenOnboarding = true
         _showOnboarding.value = false
+    }
+
+    /**
+     * Enregistre la creation d'une note et arme la verification d'interstitiel
+     * pour le retour depuis l'ecran de detail.
+     */
+    fun recordNoteCreated() {
+        preferences.totalNotesCreatedCount += 1
+        preferences.notesCreatedSinceLastAd += 1
+        hasPendingPostCreationAdCheck = true
+    }
+
+    /**
+     * Consomme la verification d'interstitiel au retour de la fiche detail.
+     * Retourne true uniquement si l'utilisateur vient de creer une note ET que
+     * la politique d'affichage (grace, frequence 1/3, cooldown 5 min) est satisfaite.
+     */
+    fun consumeInterstitialOnDetailExit(
+        nowMs: Long = System.currentTimeMillis(),
+        isAdAvailable: Boolean = true
+    ): Boolean {
+        if (!hasPendingPostCreationAdCheck) return false
+        hasPendingPostCreationAdCheck = false
+
+        if (!isAdAvailable) return false
+
+        val shouldShow = AdPlacementPolicy.shouldShowInterstitial(
+            totalNotesCreated = preferences.totalNotesCreatedCount,
+            notesSinceLastAd = preferences.notesCreatedSinceLastAd,
+            lastInterstitialShownAtMs = preferences.lastInterstitialShownAtMs,
+            nowMs = nowMs
+        )
+        if (shouldShow) {
+            preferences.notesCreatedSinceLastAd = 0
+            preferences.lastInterstitialShownAtMs = nowMs
+        }
+        return shouldShow
     }
 
     fun dismissRestrictedReel() {
@@ -201,6 +245,7 @@ class ReelNotesViewModel(
 
                 _processingStatus.value = "Enregistrement dans vos notes..."
                 val savedId = repository.saveNote(note)
+                recordNoteCreated()
                 _newlyCreatedNoteId.emit(savedId)
                 onFinished?.invoke(savedId)
             } catch (e: InstagramRestrictedException) {

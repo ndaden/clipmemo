@@ -106,4 +106,77 @@ class ReelNotesViewModelNavigationTest {
         val viewModel = ReelNotesViewModel(fakeRepository, prefs)
         assertTrue("Expected showOnboarding to be false when already seen", !viewModel.showOnboarding.value)
     }
+
+    @Test
+    fun testInterstitialOnDetailExitFollowsGraceFrequencyAndCooldownPolicy() = runTest {
+        val prefs = object : PreferencesManager(null) {
+            override var totalNotesCreatedCount: Int = 0
+            override var notesCreatedSinceLastAd: Int = 0
+            override var lastInterstitialShownAtMs: Long = 0L
+        }
+        val viewModel = ReelNotesViewModel(fakeRepository, prefs)
+        val t0 = 1_000_000L
+
+        // Browsing an existing note without creating one should never show an interstitial
+        assertTrue(!viewModel.consumeInterstitialOnDetailExit(t0))
+
+        // Note 1 (Grace period): no ad on exit
+        viewModel.recordNoteCreated()
+        assertTrue(!viewModel.consumeInterstitialOnDetailExit(t0 + 10_000L))
+
+        // Note 2 (Grace period): no ad on exit
+        viewModel.recordNoteCreated()
+        assertTrue(!viewModel.consumeInterstitialOnDetailExit(t0 + 20_000L))
+
+        // Note 3 (3rd note, grace period over): shows ad on exit!
+        val firstAdTime = t0 + 30_000L
+        viewModel.recordNoteCreated()
+        assertTrue(viewModel.consumeInterstitialOnDetailExit(firstAdTime))
+
+        // Exiting detail again (e.g. after viewing an existing note) does not re-trigger ad
+        assertTrue(!viewModel.consumeInterstitialOnDetailExit(firstAdTime + 600_000L))
+
+        // Note 4 & Note 5: frequency cap (1 every 3 notes) -> no ad
+        viewModel.recordNoteCreated()
+        assertTrue(!viewModel.consumeInterstitialOnDetailExit(firstAdTime + 600_000L))
+        viewModel.recordNoteCreated()
+        assertTrue(!viewModel.consumeInterstitialOnDetailExit(firstAdTime + 700_000L))
+
+        // Note 6 created only 2 minutes after firstAdTime -> blocked by 5-min cooldown
+        viewModel.recordNoteCreated()
+        assertTrue(!viewModel.consumeInterstitialOnDetailExit(firstAdTime + 2 * 60_000L))
+
+        // Note 7 created 6 minutes after firstAdTime -> cooldown elapsed and >= 3 notes since last ad -> shows ad!
+        viewModel.recordNoteCreated()
+        assertTrue(viewModel.consumeInterstitialOnDetailExit(firstAdTime + 6 * 60_000L))
+    }
+
+    @Test
+    fun testInterstitialCountersNotResetWhenAdNotReadyOnExit() = runTest {
+        val prefs = object : PreferencesManager(null) {
+            override var totalNotesCreatedCount: Int = 2
+            override var notesCreatedSinceLastAd: Int = 2
+            override var lastInterstitialShownAtMs: Long = 0L
+        }
+        val viewModel = ReelNotesViewModel(fakeRepository, prefs)
+        val t0 = 1_000_000L
+
+        // 3rd note created, eligible for ad, but ad is not loaded (offline)
+        viewModel.recordNoteCreated()
+        assertTrue(
+            !viewModel.consumeInterstitialOnDetailExit(
+                nowMs = t0,
+                isAdAvailable = false
+            )
+        )
+
+        // Next note (4th note) when ad becomes ready should now show the ad immediately on exit
+        viewModel.recordNoteCreated()
+        assertTrue(
+            viewModel.consumeInterstitialOnDetailExit(
+                nowMs = t0 + 30_000L,
+                isAdAvailable = true
+            )
+        )
+    }
 }

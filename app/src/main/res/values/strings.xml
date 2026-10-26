@@ -74,7 +74,7 @@
     <string name="lang_french">Français</string>
     <string name="lang_english">English</string>
     <string name="settings_about_title">À propos de ClipMemo</string>
-    <string name="app_version">ClipMemo v1.0.1</string>
+    <string name="app_version">ClipMemo v1.2.1</string>
     <string name="settings_about_desc">Transforme les Reels Instagram en fiches structurées et pratiques.</string>
     <string name="toast_login_success">Connexion Instagram réussie</string>
     <string name="toast_logged_out">Déconnexion effectuée</string>

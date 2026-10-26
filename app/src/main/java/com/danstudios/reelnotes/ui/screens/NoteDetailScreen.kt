@@ -1,6 +1,7 @@
 package com.danstudios.reelnotes.ui.screens
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,6 +55,8 @@ fun NoteDetailScreen(
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showRawCaption by remember { mutableStateOf(false) }
+
+    BackHandler(onBack = onBack)
 
     if (note == null) {
         Box(

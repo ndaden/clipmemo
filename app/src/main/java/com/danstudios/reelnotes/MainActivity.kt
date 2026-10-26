@@ -82,12 +82,11 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val navController = rememberNavController()
 
-                        // Automatically show interstitial ad then navigate to note details when a new note is processed
+                        // Navigate directly to note details when a new note is processed
+                        // (Interstitial ad is deferred to when the user exits the detail screen)
                         LaunchedEffect(Unit) {
                             viewModel.newlyCreatedNoteId.collectLatest { noteId ->
-                                InterstitialAdController.showInterstitial(this@MainActivity) {
-                                    navController.navigate(Screen.NoteDetail.createRoute(noteId))
-                                }
+                                navController.navigate(Screen.NoteDetail.createRoute(noteId))
                             }
                         }
 
@@ -140,7 +139,19 @@ class MainActivity : ComponentActivity() {
                                 NoteDetailScreen(
                                     noteId = noteId,
                                     viewModel = viewModel,
-                                    onBack = { navController.popBackStack() }
+                                    onBack = {
+                                        val shouldShowAd = viewModel.consumeInterstitialOnDetailExit(
+                                            isAdAvailable = InterstitialAdController.isAdReady()
+                                        )
+                                        if (shouldShowAd) {
+                                            InterstitialAdController.showInterstitial(this@MainActivity) {
+                                                navController.popBackStack()
+                                            }
+                                        } else {
+                                            InterstitialAdController.preload(this@MainActivity)
+                                            navController.popBackStack()
+                                        }
+                                    }
                                 )
                             }
 

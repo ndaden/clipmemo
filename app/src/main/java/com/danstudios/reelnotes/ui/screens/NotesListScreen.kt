@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.danstudios.reelnotes.R
+import com.danstudios.reelnotes.ads.AdPlacementPolicy
 import com.danstudios.reelnotes.ads.AdaptiveBannerAd
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.components.AddReelDialog
@@ -315,7 +316,9 @@ fun NotesListScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                AdaptiveBannerAd()
+                if (AdPlacementPolicy.shouldShowHomeBanner(totalNotesCount)) {
+                    AdaptiveBannerAd()
+                }
             }
         }
     }
