@@ -15,6 +15,7 @@
 keystore.properties
 *.jks
 *.keystore
+*.keystore.base64
 *.key
 *.p12
 *.pem
@@ -33,4 +34,3 @@ npm-debug.log*
 /.idea/
 .DS_Store
 Thumbs.db
-
