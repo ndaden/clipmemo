@@ -1,0 +1,7 @@
+{
+  "name": "ReelNotes",
+  "description": "Transform Instagram Reels into structured, actionable notes: recipe checklists, step-by-step guides, workouts, and tips powered by AI and offline heuristics.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
