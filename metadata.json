@@ -1,6 +1,6 @@
 {
-  "name": "ReelNotes",
-  "description": "Transform Instagram Reels into structured, actionable notes: recipe checklists, step-by-step guides, workouts, and tips powered by AI and offline heuristics.",
+  "name": "ClipMemo",
+  "description": "Transformez vos Reels Instagram en notes structurées : recettes avec liste d'ingrédients à cocher, entraînements, tutoriels et astuces.",
   "capabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
