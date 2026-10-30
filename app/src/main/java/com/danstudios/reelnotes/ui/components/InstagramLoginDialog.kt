@@ -24,6 +24,36 @@ import androidx.compose.ui.window.DialogProperties
 import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.data.network.InstagramSessionManager
 
+private const val FALLBACK_MOBILE_LOGIN_USER_AGENT =
+    "Mozilla/5.0 (Linux; Android 15; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+
+internal fun buildInstagramLoginUserAgent(rawDefaultUserAgent: String?): String {
+    val raw = rawDefaultUserAgent?.trim().orEmpty()
+    if (raw.isEmpty() || !raw.contains("Android", ignoreCase = true)) {
+        return FALLBACK_MOBILE_LOGIN_USER_AGENT
+    }
+
+    val sanitized = raw
+        .replace("; wv)", ")")
+        .replace(Regex("""\bVersion/\d+\.\d+\s+"""), "")
+
+    return when {
+        sanitized.contains("Mobile Safari/", ignoreCase = true) -> sanitized
+        sanitized.contains("Safari/") -> sanitized.replaceFirst("Safari/", "Mobile Safari/")
+        else -> "$sanitized Mobile"
+    }
+}
+
+internal fun shouldBlockExternalAppRedirect(url: String?): Boolean {
+    val normalized = url?.trim()?.lowercase() ?: return false
+    if (normalized.isEmpty()) return false
+    return normalized.startsWith("intent:") ||
+        normalized.startsWith("instagram:") ||
+        normalized.startsWith("market:") ||
+        normalized.startsWith("https://play.google.com/store") ||
+        normalized.startsWith("http://play.google.com/store")
+}
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun InstagramLoginDialog(
@@ -50,136 +80,134 @@ fun InstagramLoginDialog(
 
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
     ) {
-        Surface(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp
+                .safeDrawingPadding()
+                .padding(16.dp)
         ) {
-            CompositionLocalProvider(
-                LocalContext provides context,
-                LocalConfiguration provides configuration
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp
             ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    // Header
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.instagram_login_title),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = stringResource(R.string.instagram_login_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.btn_close))
-                    }
-                }
-
-                if (isLoading) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-
-                Box(modifier = Modifier.weight(1f)) {
-                    AndroidView(
-                        factory = { context ->
-                            WebView(context).apply {
-                                layoutParams = android.view.ViewGroup.LayoutParams(
-                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                                )
-
-                                settings.apply {
-                                    javaScriptEnabled = true
-                                    domStorageEnabled = true
-                                    databaseEnabled = true
-                                    useWideViewPort = true
-                                    loadWithOverviewMode = true
-                                    // Use Desktop Chrome User-Agent to render standard desktop web login
-                                    // avoiding mobile app deep-linking redirects and broken mobile Bloks modals
-                                    userAgentString =
-                                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-                                    mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                                }
-
-                                val cookieMgr = CookieManager.getInstance()
-                                cookieMgr.setAcceptCookie(true)
-                                cookieMgr.setAcceptThirdPartyCookies(this, true)
-
-                                webChromeClient = object : android.webkit.WebChromeClient() {
-                                    override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
-                                        android.util.Log.d("InstaLoginDialog", "CONSOLE: [${consoleMessage?.messageLevel()}] ${consoleMessage?.message()}")
-                                        return super.onConsoleMessage(consoleMessage)
-                                    }
-                                }
-
-                                // Aucun script n'est injecte dans la page Instagram : l'utilisateur
-                                // interagit lui-meme avec la banniere de cookies et le formulaire.
-                                // Cliquer programmatiquement sur les boutons d'un service tiers
-                                // constitue une interaction automatisee, signalee aussi bien par
-                                // la revue Play que par la detection anti-robot de Meta.
-                                webViewClient = object : WebViewClient() {
-                                    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                                        super.onPageStarted(view, url, favicon)
-                                        android.util.Log.d("InstaLoginDialog", "onPageStarted: $url")
-                                        isLoading = true
-                                    }
-
-                                    override fun onPageFinished(view: WebView?, url: String?) {
-                                        super.onPageFinished(view, url)
-                                        android.util.Log.d("InstaLoginDialog", "onPageFinished: $url")
-                                        isLoading = false
-
-                                        if (InstagramSessionManager.isLoggedIn()) {
-                                            android.util.Log.d("InstaLoginDialog", "User logged in! Triggering onLoginSuccess")
-                                            CookieManager.getInstance().flush()
-                                            onLoginSuccess()
-                                        }
-                                    }
-
-                                    override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
-                                        val reqUrl = request?.url?.toString() ?: return false
-                                        // Block intent:// or instagram:// deep links from throwing ActivityNotFoundException
-                                        if (reqUrl.startsWith("intent:") || reqUrl.startsWith("instagram:")) {
-                                            android.util.Log.d("InstaLoginDialog", "Blocked deep-link scheme: $reqUrl")
-                                            return true
-                                        }
-                                        return false
-                                    }
-                                }
-
-                                loadUrl("https://www.instagram.com/accounts/login/")
-                            }
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.End
+                CompositionLocalProvider(
+                    LocalContext provides context,
+                    LocalConfiguration provides configuration
                 ) {
-                    TextButton(onClick = onDismiss) {
-                        Text(stringResource(R.string.btn_close))
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Header
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.instagram_login_title),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = stringResource(R.string.instagram_login_subtitle),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            IconButton(onClick = onDismiss) {
+                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.btn_close))
+                            }
+                        }
+
+                        if (isLoading) {
+                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        }
+
+                        Box(modifier = Modifier.weight(1f)) {
+                            AndroidView(
+                                factory = { ctx ->
+                                    WebView(ctx).apply {
+                                        layoutParams = android.view.ViewGroup.LayoutParams(
+                                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                        )
+
+                                        settings.apply {
+                                            javaScriptEnabled = true
+                                            domStorageEnabled = true
+                                            databaseEnabled = true
+                                            useWideViewPort = true
+                                            // Use clean Mobile Android Chrome User-Agent (without "; wv)") so Instagram
+                                            // directly renders the mobile username/password form instead of the
+                                            // "Get the full experience with the tablet app / Open Instagram" interstitial.
+                                            val rawUa = runCatching { WebSettings.getDefaultUserAgent(ctx) }
+                                                .getOrNull() ?: userAgentString
+                                            userAgentString = buildInstagramLoginUserAgent(rawUa)
+                                            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                                        }
+
+                                        val cookieMgr = CookieManager.getInstance()
+                                        cookieMgr.setAcceptCookie(true)
+                                        cookieMgr.setAcceptThirdPartyCookies(this, true)
+
+                                        webChromeClient = object : android.webkit.WebChromeClient() {
+                                            override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
+                                                android.util.Log.d("InstaLoginDialog", "CONSOLE: [${consoleMessage?.messageLevel()}] ${consoleMessage?.message()}")
+                                                return super.onConsoleMessage(consoleMessage)
+                                            }
+                                        }
+
+                                        // Aucun script n'est injecte dans la page Instagram : l'utilisateur
+                                        // interagit lui-meme avec la banniere de cookies et le formulaire.
+                                        // Cliquer programmatiquement sur les boutons d'un service tiers
+                                        // constitue une interaction automatisee, signalee aussi bien par
+                                        // la revue Play que par la detection anti-robot de Meta.
+                                        webViewClient = object : WebViewClient() {
+                                            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                                                super.onPageStarted(view, url, favicon)
+                                                android.util.Log.d("InstaLoginDialog", "onPageStarted: $url")
+                                                isLoading = true
+                                            }
+
+                                            override fun onPageFinished(view: WebView?, url: String?) {
+                                                super.onPageFinished(view, url)
+                                                android.util.Log.d("InstaLoginDialog", "onPageFinished: $url")
+                                                isLoading = false
+
+                                                if (InstagramSessionManager.isLoggedIn()) {
+                                                    android.util.Log.d("InstaLoginDialog", "User logged in! Triggering onLoginSuccess")
+                                                    CookieManager.getInstance().flush()
+                                                    onLoginSuccess()
+                                                }
+                                            }
+
+                                            override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
+                                                val reqUrl = request?.url?.toString() ?: return false
+                                                // Block intent://, instagram://, market://, or Play Store redirects
+                                                if (shouldBlockExternalAppRedirect(reqUrl)) {
+                                                    android.util.Log.d("InstaLoginDialog", "Blocked external redirect: $reqUrl")
+                                                    return true
+                                                }
+                                                return false
+                                            }
+                                        }
+
+                                        loadUrl("https://www.instagram.com/accounts/login/")
+                                    }
+                                },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}
 }
