@@ -109,4 +109,27 @@ class AdPlacementPolicyTest {
         assertTrue(AdPlacementPolicy.shouldShowHomeBanner(totalNotesCount = 1))
         assertTrue(AdPlacementPolicy.shouldShowHomeBanner(totalNotesCount = 10))
     }
+
+    @Test
+    fun `never shows interstitial or home banner when isPro is true`() {
+        assertFalse(
+            AdPlacementPolicy.shouldShowInterstitial(
+                totalNotesCreated = 3,
+                notesSinceLastAd = 3,
+                lastInterstitialShownAtMs = 0L,
+                nowMs = 1_000_000L,
+                isPro = true
+            )
+        )
+        assertFalse(
+            AdPlacementPolicy.shouldShowInterstitial(
+                totalNotesCreated = 10,
+                notesSinceLastAd = 10,
+                lastInterstitialShownAtMs = 1_000_000L,
+                nowMs = 2_000_000L,
+                isPro = true
+            )
+        )
+        assertFalse(AdPlacementPolicy.shouldShowHomeBanner(totalNotesCount = 5, isPro = true))
+    }
 }

@@ -28,6 +28,7 @@ fun requiredConfig(envName: String, propertyName: String, defaultValue: String =
 
 val backendBaseUrl = requiredConfig("BACKEND_BASE_URL", "backend.base.url", "https://clipmemo.dnabil.ovh")
 val backendAppKey = requiredConfig("BACKEND_APP_KEY", "backend.app.key", "ci-build-only-not-a-real-key")
+val revenueCatPublicKey = requiredConfig("REVENUECAT_PUBLIC_KEY", "revenuecat.public.key", "goog_MpxxlVaoboMSOLYQtevlkGDLrmL")
 
 android {
     namespace = "com.danstudios.reelnotes"
@@ -37,11 +38,12 @@ android {
         applicationId = "com.danstudios.clipmemo"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.2.3"
+        versionCode = 11
+        versionName = "1.3.0"
 
         buildConfigField("String", "BACKEND_BASE_URL", "\"$backendBaseUrl\"")
         buildConfigField("String", "BACKEND_APP_KEY", "\"$backendAppKey\"")
+        buildConfigField("String", "REVENUECAT_PUBLIC_KEY", "\"$revenueCatPublicKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -105,6 +107,10 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -142,6 +148,9 @@ dependencies {
 
     // Google Mobile Ads
     implementation(libs.play.services.ads)
+
+    // RevenueCat In-App Purchases
+    implementation(libs.revenuecat.purchases)
 
     // Testing
     testImplementation(libs.junit)

@@ -179,4 +179,40 @@ class ReelNotesViewModelNavigationTest {
             )
         )
     }
+
+    @Test
+    fun testInterstitialBlockedWhenUserIsPro() = runTest {
+        val prefs = object : PreferencesManager(null) {
+            override var totalNotesCreatedCount: Int = 2
+            override var notesCreatedSinceLastAd: Int = 2
+            override var lastInterstitialShownAtMs: Long = 0L
+            override var isPro: Boolean = true
+        }
+        val viewModel = ReelNotesViewModel(fakeRepository, prefs)
+        val t0 = 1_000_000L
+
+        viewModel.recordNoteCreated()
+        val shouldShow = viewModel.consumeInterstitialOnDetailExit(
+            nowMs = t0,
+            isAdAvailable = true
+        )
+        assertTrue("Expected interstitial to be blocked when user is Pro", !shouldShow)
+    }
+
+    @Test
+    fun testPurchaseProUpdatesStateFlow() = runTest {
+        val fakeBilling = com.danstudios.reelnotes.billing.FakeBillingManager(initialIsPro = false)
+        val viewModel = ReelNotesViewModel(fakeRepository, fakePreferences, fakeBilling)
+
+        assertTrue(!viewModel.isPro.value)
+
+        var purchaseSuccess: Boolean? = null
+        viewModel.purchasePro(android.app.Activity()) { success, _ ->
+            purchaseSuccess = success
+        }
+
+        testScheduler.advanceUntilIdle()
+        assertTrue("Expected fakeBilling.isPro to become true", fakeBilling.isPro.value)
+        assertTrue("Expected purchaseSuccess to be true", purchaseSuccess == true)
+    }
 }

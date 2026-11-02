@@ -42,6 +42,12 @@ open class PreferencesManager(context: Context? = null) {
             prefs?.edit()?.putLong(KEY_LAST_INTERSTITIAL_SHOWN_AT_MS, value)?.apply()
         }
 
+    open var isPro: Boolean
+        get() = prefs?.getBoolean(KEY_IS_PRO, false) ?: false
+        set(value) {
+            prefs?.edit()?.putBoolean(KEY_IS_PRO, value)?.apply()
+        }
+
     companion object {
         private const val PREFS_NAME = "reelnotes_prefs"
         private const val KEY_PREFERRED_LANGUAGE = "preferred_language"
@@ -49,5 +55,6 @@ open class PreferencesManager(context: Context? = null) {
         private const val KEY_TOTAL_NOTES_CREATED_COUNT = "total_notes_created_count"
         private const val KEY_NOTES_CREATED_SINCE_LAST_AD = "notes_created_since_last_ad"
         private const val KEY_LAST_INTERSTITIAL_SHOWN_AT_MS = "last_interstitial_shown_at_ms"
+        private const val KEY_IS_PRO = "is_pro"
     }
 }

@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
 
     private val app by lazy { application as ReelNotesApp }
     private val viewModel: ReelNotesViewModel by viewModels {
-        ReelNotesViewModel.Factory(app.repository, app.preferences)
+        ReelNotesViewModel.Factory(app.repository, app.preferences, app.billingManager)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

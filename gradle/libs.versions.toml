@@ -13,6 +13,7 @@ kotlinxSerialization = "1.7.3"
 kotlinxCoroutines = "1.9.0"
 coil = "2.7.0"
 playServicesAds = "23.6.0"
+revenuecat = "11.0.0"
 junit = "4.13.2"
 androidxTestExt = "1.2.1"
 espressoCore = "3.6.1"
@@ -48,6 +49,9 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 
 # Google Mobile Ads
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+
+# RevenueCat In-App Purchases
+revenuecat-purchases = { group = "com.revenuecat.purchases", name = "purchases", version.ref = "revenuecat" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

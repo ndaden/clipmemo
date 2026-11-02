@@ -117,4 +117,19 @@
     <string name="restricted_reel_message">Ce Reel est privé ou soumis à une restriction d\'âge. Connectez votre compte Instagram pour y accéder, ou collez vous-même sa légende.</string>
     <string name="restricted_reel_btn_login">Se connecter</string>
     <string name="restricted_reel_btn_paste">Coller la légende</string>
+
+    <!-- ClipMemo Pro / RevenueCat Billing -->
+    <string name="settings_pro_title">ClipMemo Pro</string>
+    <string name="settings_pro_badge_lifetime">ACHAT UNIQUE</string>
+    <string name="settings_pro_desc">Supprimez définitivement toutes les publicités (bannières et interstitiels) et profitez d\'une expérience ultra-fluide.</string>
+    <string name="settings_pro_active_title">ClipMemo Pro Actif</string>
+    <string name="settings_pro_active_desc">Toutes les publicités ont été définitivement supprimées à vie. Merci pour votre soutien !</string>
+    <string name="settings_pro_btn_buy">Supprimer les pubs — %1$s</string>
+    <string name="settings_pro_btn_loading">Chargement de l\'offre...</string>
+    <string name="settings_pro_btn_restore">Restaurer mes achats</string>
+    <string name="settings_pro_lifetime_disclaimer">Paiement unique valable à vie sur tous vos appareils Android connectés à votre compte Google Play.</string>
+    <string name="toast_purchase_success">Félicitations ! ClipMemo Pro est désormais activé.</string>
+    <string name="toast_restore_success">Achats restaurés avec succès !</string>
+    <string name="toast_restore_no_purchase">Aucun achat précédent n\'a été trouvé pour ce compte Google Play.</string>
+    <string name="toast_billing_error">Une erreur est survenue lors de l\'opération.</string>
 </resources>

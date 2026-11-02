@@ -1,6 +1,8 @@
 package com.danstudios.reelnotes.ui.screens
 
+import android.app.Activity
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.*
@@ -21,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.danstudios.reelnotes.R
@@ -88,7 +93,12 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            // Section 1: Instagram Session (Optional)
+            // Section 1: ClipMemo Pro (In-App Purchase / No Ads)
+            ProSettingsCard(viewModel = viewModel)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Section 2: Instagram Session (Optional)
             Text(
                 text = stringResource(R.string.settings_instagram_title),
                 fontSize = 14.sp,
@@ -322,6 +332,230 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun ProSettingsCard(
+    viewModel: ReelNotesViewModel
+) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val isPro by viewModel.isPro.collectAsState()
+    val lifetimePriceString by viewModel.lifetimePriceString.collectAsState()
+    val isBillingLoading by viewModel.isBillingLoading.collectAsState()
+
+    val cardBorder = if (isPro) {
+        BorderStroke(1.dp, EmeraldLight.copy(alpha = 0.4f))
+    } else {
+        BorderStroke(1.dp, NeonViolet.copy(alpha = 0.6f))
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .border(cardBorder.width, cardBorder.brush, RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkSurface)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (isPro) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(EmeraldSuccess.copy(alpha = 0.15f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = EmeraldLight,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.settings_pro_active_title),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = EmeraldLight
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.settings_pro_active_desc),
+                            fontSize = 12.sp,
+                            color = TextSecondary,
+                            lineHeight = 16.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(
+                        onClick = {
+                            viewModel.restorePurchases { restored, err ->
+                                if (restored) {
+                                    Toast.makeText(context, context.getString(R.string.toast_restore_success), Toast.LENGTH_SHORT).show()
+                                } else if (err != null) {
+                                    Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, context.getString(R.string.toast_restore_no_purchase), Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        enabled = !isBillingLoading
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_pro_btn_restore),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(NeonViolet.copy(alpha = 0.2f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                tint = NeonVioletLight,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = stringResource(R.string.settings_pro_title),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(NeonViolet.copy(alpha = 0.15f))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_pro_badge_lifetime),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = NeonVioletLight,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_pro_desc),
+                    fontSize = 13.sp,
+                    color = TextSecondary,
+                    lineHeight = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val buttonLabel = if (lifetimePriceString != null) {
+                    stringResource(R.string.settings_pro_btn_buy, lifetimePriceString!!)
+                } else {
+                    stringResource(R.string.settings_pro_btn_loading)
+                }
+
+                Button(
+                    onClick = {
+                        if (activity != null) {
+                            viewModel.purchasePro(activity) { success, err ->
+                                if (success) {
+                                    Toast.makeText(context, context.getString(R.string.toast_purchase_success), Toast.LENGTH_SHORT).show()
+                                } else if (err != null) {
+                                    Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NeonViolet,
+                        contentColor = Color.White
+                    ),
+                    enabled = activity != null && !isBillingLoading
+                ) {
+                    if (isBillingLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = buttonLabel,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    TextButton(
+                        onClick = {
+                            viewModel.restorePurchases { restored, err ->
+                                if (restored) {
+                                    Toast.makeText(context, context.getString(R.string.toast_restore_success), Toast.LENGTH_SHORT).show()
+                                } else if (err != null) {
+                                    Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, context.getString(R.string.toast_restore_no_purchase), Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        enabled = !isBillingLoading
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_pro_btn_restore),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.settings_pro_lifetime_disclaimer),
+                    fontSize = 11.sp,
+                    color = TextPlaceholder,
+                    lineHeight = 14.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

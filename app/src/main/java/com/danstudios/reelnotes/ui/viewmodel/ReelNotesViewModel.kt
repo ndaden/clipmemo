@@ -1,10 +1,12 @@
 package com.danstudios.reelnotes.ui.viewmodel
 
+import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.danstudios.reelnotes.ads.AdPlacementPolicy
+import com.danstudios.reelnotes.billing.BillingManager
 import com.danstudios.reelnotes.data.local.PreferencesManager
 import com.danstudios.reelnotes.data.network.GeminiSummarizer
 import com.danstudios.reelnotes.data.network.InstagramSessionManager
@@ -18,8 +20,13 @@ import kotlinx.coroutines.launch
 
 class ReelNotesViewModel(
     private val repository: ReelNoteRepository,
-    private val preferences: PreferencesManager
+    private val preferences: PreferencesManager,
+    private val billingManager: BillingManager? = null
 ) : ViewModel() {
+
+    val isPro: StateFlow<Boolean> = billingManager?.isPro ?: MutableStateFlow(preferences.isPro).asStateFlow()
+    val lifetimePriceString: StateFlow<String?> = billingManager?.lifetimePriceString ?: MutableStateFlow<String?>(null).asStateFlow()
+    val isBillingLoading: StateFlow<Boolean> = billingManager?.isBillingLoading ?: MutableStateFlow(false).asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -154,7 +161,8 @@ class ReelNotesViewModel(
             totalNotesCreated = preferences.totalNotesCreatedCount,
             notesSinceLastAd = preferences.notesCreatedSinceLastAd,
             lastInterstitialShownAtMs = preferences.lastInterstitialShownAtMs,
-            nowMs = nowMs
+            nowMs = nowMs,
+            isPro = preferences.isPro
         )
         if (shouldShow) {
             preferences.notesCreatedSinceLastAd = 0
@@ -267,13 +275,46 @@ class ReelNotesViewModel(
         }
     }
 
+    fun purchasePro(activity: Activity, onComplete: ((Boolean, String?) -> Unit)? = null) {
+        val manager = billingManager ?: run {
+            onComplete?.invoke(false, "Billing manager not available")
+            return
+        }
+        viewModelScope.launch {
+            val result = manager.purchasePro(activity)
+            if (result.isSuccess) {
+                onComplete?.invoke(result.getOrDefault(false), null)
+            } else {
+                val err = result.exceptionOrNull()
+                onComplete?.invoke(false, err?.localizedMessage ?: err?.message)
+            }
+        }
+    }
+
+    fun restorePurchases(onComplete: ((Boolean, String?) -> Unit)? = null) {
+        val manager = billingManager ?: run {
+            onComplete?.invoke(false, "Billing manager not available")
+            return
+        }
+        viewModelScope.launch {
+            val result = manager.restorePurchases()
+            if (result.isSuccess) {
+                onComplete?.invoke(result.getOrDefault(false), null)
+            } else {
+                val err = result.exceptionOrNull()
+                onComplete?.invoke(false, err?.localizedMessage ?: err?.message)
+            }
+        }
+    }
+
     class Factory(
         private val repository: ReelNoteRepository,
-        private val preferences: PreferencesManager
+        private val preferences: PreferencesManager,
+        private val billingManager: BillingManager? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ReelNotesViewModel(repository, preferences) as T
+            return ReelNotesViewModel(repository, preferences, billingManager) as T
         }
     }
 }

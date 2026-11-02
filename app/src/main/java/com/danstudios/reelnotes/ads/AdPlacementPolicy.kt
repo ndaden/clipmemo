@@ -16,8 +16,10 @@ object AdPlacementPolicy {
         totalNotesCreated: Int,
         notesSinceLastAd: Int,
         lastInterstitialShownAtMs: Long,
-        nowMs: Long
+        nowMs: Long,
+        isPro: Boolean = false
     ): Boolean {
+        if (isPro) return false
         if (totalNotesCreated <= GRACE_NOTES_COUNT) return false
         if (notesSinceLastAd < NOTES_FREQUENCY_INTERVAL) return false
         if (lastInterstitialShownAtMs > 0L && (nowMs - lastInterstitialShownAtMs) < MIN_COOLDOWN_MS) {
@@ -26,7 +28,8 @@ object AdPlacementPolicy {
         return true
     }
 
-    fun shouldShowHomeBanner(totalNotesCount: Int): Boolean {
+    fun shouldShowHomeBanner(totalNotesCount: Int, isPro: Boolean = false): Boolean {
+        if (isPro) return false
         return totalNotesCount > 0
     }
 }

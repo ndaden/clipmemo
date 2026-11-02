@@ -57,6 +57,7 @@ fun NotesListScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val showOnboarding by viewModel.showOnboarding.collectAsState()
     val restrictedReelInput by viewModel.restrictedReelInput.collectAsState()
+    val isPro by viewModel.isPro.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var addDialogInitialUrl by remember { mutableStateOf("") }
@@ -316,7 +317,7 @@ fun NotesListScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                if (AdPlacementPolicy.shouldShowHomeBanner(totalNotesCount)) {
+                if (AdPlacementPolicy.shouldShowHomeBanner(totalNotesCount, isPro)) {
                     AdaptiveBannerAd()
                 }
             }

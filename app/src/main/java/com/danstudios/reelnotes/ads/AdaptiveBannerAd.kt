@@ -28,9 +28,10 @@ import com.google.android.gms.ads.AdView
 
 @Composable
 fun AdaptiveBannerAd(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isPro: Boolean = false
 ) {
-    if (!AdConfig.ADS_ENABLED) {
+    if (isPro || !AdConfig.ADS_ENABLED) {
         return
     }
 
