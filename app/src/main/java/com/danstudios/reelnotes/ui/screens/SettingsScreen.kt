@@ -1,6 +1,8 @@
 package com.danstudios.reelnotes.ui.screens
 
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -341,7 +343,7 @@ private fun ProSettingsCard(
     viewModel: ReelNotesViewModel
 ) {
     val context = LocalContext.current
-    val activity = context as? Activity
+    val activity = remember(context) { context.findActivity() }
     val isPro by viewModel.isPro.collectAsState()
     val lifetimePriceString by viewModel.lifetimePriceString.collectAsState()
     val isBillingLoading by viewModel.isBillingLoading.collectAsState()
@@ -559,3 +561,13 @@ private fun ProSettingsCard(
         }
     }
 }
+
+private fun Context.findActivity(): Activity? {
+    var current = this
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return null
+}
+
