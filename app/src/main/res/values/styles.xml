@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ClipMemo" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/clipmemo_dark_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <color name="clipmemo_dark_bg">#0A0B0E</color>
+</resources>

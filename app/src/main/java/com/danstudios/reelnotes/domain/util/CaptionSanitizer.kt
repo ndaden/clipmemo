@@ -2,6 +2,37 @@ package com.danstudios.reelnotes.domain.util
 
 object CaptionSanitizer {
 
+    private val BOILERPLATE_PATTERNS = listOf(
+        "allow the use of cookies from instagram",
+        "use cookies and similar technologies",
+        "decline optional cookies",
+        "allow all cookies",
+        "essential cookies",
+        "autoriser l’utilisation des cookies",
+        "autoriser l'utilisation des cookies",
+        "refuser les cookies optionnels",
+        "sorry, this page isn't available",
+        "sorry, this page isn’t available",
+        "this content isn't available",
+        "this content isn’t available",
+        "cette page n’est malheureusement pas disponible",
+        "cette page n'est malheureusement pas disponible",
+        "contenu indisponible",
+        "log in to continue",
+        "log in to instagram",
+        "connectez-vous pour continuer"
+    )
+
+    /**
+     * Detects Instagram cookie consent dialogs, login walls, and unavailable-page
+     * boilerplate so they are never treated as real Reel captions or summarized as notes.
+     */
+    fun isInstagramBoilerplateOrUnavailable(text: String): Boolean {
+        if (text.isBlank()) return false
+        val lower = text.lowercase()
+        return BOILERPLATE_PATTERNS.any { lower.contains(it) }
+    }
+
     /**
      * Extracts the caption of strictly the FIRST (target) Reel from the raw bodyText of an
      * Instagram Reels feed. It locates the first Follow/Suivre header and cuts at the first
@@ -41,6 +72,7 @@ object CaptionSanitizer {
      */
     fun sanitize(rawCaption: String, author: String? = null): String {
         if (rawCaption.isBlank()) return ""
+        if (isInstagramBoilerplateOrUnavailable(rawCaption)) return ""
         var text = rawCaption.trim()
 
         val cleanAuthor = author?.removePrefix("@")?.trim()

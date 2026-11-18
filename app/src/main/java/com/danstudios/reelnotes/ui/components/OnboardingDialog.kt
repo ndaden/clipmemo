@@ -10,13 +10,10 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,8 +26,7 @@ fun OnboardingDialog(
     onDismiss: () -> Unit,
     onConnectInstagram: () -> Unit
 ) {
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
+    val withLocalized = rememberLocalizedDialogProviders()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -38,10 +34,7 @@ fun OnboardingDialog(
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier.border(1.dp, DarkBorder, RoundedCornerShape(24.dp)),
         title = {
-            CompositionLocalProvider(
-                LocalContext provides context,
-                LocalConfiguration provides configuration
-            ) {
+            withLocalized {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -68,10 +61,7 @@ fun OnboardingDialog(
             }
         },
         text = {
-            CompositionLocalProvider(
-                LocalContext provides context,
-                LocalConfiguration provides configuration
-            ) {
+            withLocalized {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -170,10 +160,7 @@ fun OnboardingDialog(
             }
         },
         confirmButton = {
-            CompositionLocalProvider(
-                LocalContext provides context,
-                LocalConfiguration provides configuration
-            ) {
+            withLocalized {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(4.dp)

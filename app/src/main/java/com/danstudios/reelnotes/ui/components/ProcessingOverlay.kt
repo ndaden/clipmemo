@@ -9,54 +9,62 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.danstudios.reelnotes.R
+import com.danstudios.reelnotes.domain.extractor.ProcessingStage
 import com.danstudios.reelnotes.ui.theme.*
 
 @Composable
 fun ProcessingOverlay(
-    status: String,
+    stage: ProcessingStage?,
     modifier: Modifier = Modifier
 ) {
+    val withLocalized = rememberLocalizedDialogProviders()
     Dialog(onDismissRequest = { /* non-cancelable during extraction */ }) {
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkSurface),
-            modifier = modifier
-                .width(280.dp)
-                .border(1.dp, DarkBorder, RoundedCornerShape(20.dp))
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+        withLocalized {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurface),
+                modifier = modifier
+                    .width(280.dp)
+                    .border(1.dp, DarkBorder, RoundedCornerShape(20.dp))
             ) {
-                CircularProgressIndicator(
-                    color = NeonViolet,
-                    strokeWidth = 3.dp,
-                    modifier = Modifier.size(44.dp)
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = NeonViolet,
+                        strokeWidth = 3.dp,
+                        modifier = Modifier.size(44.dp)
+                    )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                    text = stringResource(R.string.overlay_title),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
+                    Text(
+                        text = stringResource(R.string.overlay_title),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        textAlign = TextAlign.Center
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = status.ifBlank { stringResource(R.string.status_processing_generic) },
-                    fontSize = 13.sp,
-                    color = TextSecondary
-                )
+                    Text(
+                        text = stringResource(stage?.labelRes ?: R.string.status_processing_generic),
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 18.sp
+                    )
+                }
             }
         }
     }

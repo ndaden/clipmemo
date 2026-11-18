@@ -49,6 +49,7 @@ fun StepList(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -56,10 +57,12 @@ fun StepList(
                     ),
                 verticalAlignment = Alignment.Top
             ) {
-                // Timeline Column: Circle Badge + Connecting Line
+                // Timeline Column: Circle Badge + Dynamic Connecting Line
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(32.dp)
+                    modifier = Modifier
+                        .width(32.dp)
+                        .fillMaxHeight()
                 ) {
                     val circleBg by animateColorAsState(
                         targetValue = if (step.isDone) EmeraldSuccess else DarkSurfaceElevated,
@@ -92,7 +95,8 @@ fun StepList(
                         Box(
                             modifier = Modifier
                                 .width(2.dp)
-                                .height(44.dp)
+                                .weight(1f)
+                                .defaultMinSize(minHeight = 20.dp)
                                 .background(DarkBorder)
                         )
                     }
@@ -109,7 +113,7 @@ fun StepList(
                     lineHeight = 20.sp,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(bottom = if (isLast) 0.dp else 20.dp)
+                        .padding(top = 3.dp, bottom = if (isLast) 0.dp else 20.dp)
                 )
             }
         }

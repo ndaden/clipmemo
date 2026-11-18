@@ -1,6 +1,8 @@
 package com.danstudios.reelnotes.domain.extractor
 
 import android.content.Context
+import androidx.annotation.StringRes
+import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.data.network.GeminiAiOutput
 import com.danstudios.reelnotes.data.network.GeminiSummarizer
 import com.danstudios.reelnotes.data.network.InstagramMetadataFetcher
@@ -10,6 +12,26 @@ import com.danstudios.reelnotes.domain.model.StructuredNoteData
 import com.danstudios.reelnotes.domain.util.CaptionSanitizer
 import com.danstudios.reelnotes.domain.util.UrlParser
 
+enum class ProcessingStage(@StringRes val labelRes: Int) {
+    FETCHING(R.string.status_fetching),
+    ANALYZING_MEDIA(R.string.status_analyzing_media),
+    ANALYZING_TEXT(R.string.status_analyzing_text),
+    GENERATING(R.string.status_generating),
+    ANALYZING_OFFLINE(R.string.status_analyzing_offline),
+    SAVING(R.string.status_saving)
+}
+
+enum class ExtractionErrorType(@StringRes val messageRes: Int) {
+    INVALID_URL(R.string.error_reel_url_not_found),
+    REEL_UNAVAILABLE(R.string.error_reel_unavailable),
+    PROCESSING_FAILED(R.string.default_processing_error)
+}
+
+class ReelExtractionException(
+    val errorType: ExtractionErrorType,
+    message: String
+) : Exception(message)
+
 object ReelExtractionPipeline {
 
     suspend fun processReel(
@@ -17,23 +39,26 @@ object ReelExtractionPipeline {
         preferredLanguage: String = "fr",
         manualCaption: String? = null,
         context: Context? = null,
-        onProgressUpdate: ((String) -> Unit)? = null
+        onStageUpdate: ((ProcessingStage) -> Unit)? = null
     ): ReelNote {
         val reelInfo = UrlParser.extractReelInfo(sharedInput)
-            ?: throw IllegalArgumentException("Lien Instagram Reel introuvable dans le texte partagé.")
+            ?: throw ReelExtractionException(
+                ExtractionErrorType.INVALID_URL,
+                "No valid Instagram Reel link found in input."
+            )
 
         val cleanUrl = reelInfo.cleanUrl
         val shortcode = reelInfo.shortcode
         val initialCaption = UrlParser.extractCaptionFromSharedText(sharedInput)
 
         // 1. Fetch metadata & media stream
-        onProgressUpdate?.invoke("Chargement du Reel Instagram...")
+        onStageUpdate?.invoke(ProcessingStage.FETCHING)
         val fetchedMeta = InstagramMetadataFetcher.fetch(shortcode, cleanUrl, context)
 
         // 2. Author resolution (fetched metadata takes precedence, then shared text)
         val author = fetchedMeta.author ?: UrlParser.extractAuthorFromSharedText(sharedInput)
 
-        // 3. Caption sanitization (guarantees no subsequent feed reels leak into prompt)
+        // 3. Caption sanitization (guarantees no subsequent feed reels or cookie banners leak into prompt)
         val effectiveManualCaption = manualCaption?.trim().orEmpty()
         val sanitizedFetchedCaption = CaptionSanitizer.sanitize(fetchedMeta.caption, author)
         val combinedCaption = when {
@@ -47,10 +72,18 @@ object ReelExtractionPipeline {
             combinedCaption.isBlank() &&
             fetchedMeta.mediaBytes == null
         ) {
-            // Le message n'est pas affiche tel quel : l'UI intercepte cette exception
-            // pour proposer les deux issues (connexion Instagram ou collage de legende).
             throw InstagramRestrictedException(
-                "Reel inaccessible : contenu prive ou soumis a une restriction d'age."
+                "Reel unavailable: private or age-restricted content."
+            )
+        }
+
+        if (fetchedMeta.isUnavailable &&
+            combinedCaption.isBlank() &&
+            fetchedMeta.mediaBytes == null
+        ) {
+            throw ReelExtractionException(
+                ExtractionErrorType.REEL_UNAVAILABLE,
+                "This Instagram Reel is unavailable or the link is broken."
             )
         }
 
@@ -60,7 +93,7 @@ object ReelExtractionPipeline {
 
         // 3. Multimodal analysis via backend proxy (watching and listening to the video / audio stream)
         if (fetchedMeta.mediaBytes != null && fetchedMeta.mediaMimeType != null) {
-            onProgressUpdate?.invoke("L'IA écoute et analyse la vidéo du Reel...")
+            onStageUpdate?.invoke(ProcessingStage.ANALYZING_MEDIA)
             aiResult = GeminiSummarizer.summarizeMultimodal(
                 mediaBytes = fetchedMeta.mediaBytes,
                 mimeType = fetchedMeta.mediaMimeType,
@@ -71,13 +104,15 @@ object ReelExtractionPipeline {
 
         // 4. Text-only fallback via backend proxy if multimodal wasn't applicable or failed
         if (aiResult == null && combinedCaption.isNotBlank()) {
-            onProgressUpdate?.invoke("L'IA analyse les instructions textuelles...")
+            onStageUpdate?.invoke(ProcessingStage.ANALYZING_TEXT)
             aiResult = GeminiSummarizer.summarize(combinedCaption, preferredLanguage)
         }
 
-        // 5. Build structured note if AI succeeded
-        if (aiResult != null) {
-            onProgressUpdate?.invoke("Génération des notes structurées...")
+        // 5. Build structured note if AI succeeded (reject boilerplate/unavailable hallucinated notes)
+        if (aiResult != null &&
+            !CaptionSanitizer.isInstagramBoilerplateOrUnavailable("${aiResult.title} ${aiResult.summary}")
+        ) {
+            onStageUpdate?.invoke(ProcessingStage.GENERATING)
             val category = NoteCategory.fromString(aiResult.category)
             val structuredData = StructuredNoteData(
                 summary = aiResult.summary,
@@ -117,18 +152,19 @@ object ReelExtractionPipeline {
         // 6. If neither media nor caption could be obtained
         if (combinedCaption.isBlank() && fetchedMeta.mediaBytes == null) {
             throw InstagramRestrictedException(
-                "Reel inaccessible : ni le flux media ni la legende n'ont pu etre recuperes."
+                "Reel inaccessible: neither media stream nor caption could be retrieved."
             )
         }
 
         // 7. Offline Heuristic NLP Extractor
-        onProgressUpdate?.invoke("Analyse locale hors-ligne...")
+        onStageUpdate?.invoke(ProcessingStage.ANALYZING_OFFLINE)
         return OfflineHeuristicExtractor.extract(
             caption = combinedCaption.ifBlank { "Reel Instagram $shortcode" },
             reelUrl = cleanUrl,
             shortcode = shortcode,
             author = author,
-            thumbnailUrl = thumb
+            thumbnailUrl = thumb,
+            preferredLanguage = preferredLanguage
         )
     }
 

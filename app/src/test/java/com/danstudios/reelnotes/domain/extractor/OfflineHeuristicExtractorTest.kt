@@ -143,4 +143,23 @@ class OfflineHeuristicExtractorTest {
         assertTrue(result.structuredData.keyTakeaways.size >= 3)
         assertTrue(result.tags.contains("tech"))
     }
+
+    @Test
+    fun `extract produces English summary when preferredLanguage is en`() {
+        val caption = """
+            Quick Pasta
+            Ingredients:
+            - 200g pasta
+            1. Boil pasta.
+        """.trimIndent()
+
+        val result = OfflineHeuristicExtractor.extract(
+            caption = caption,
+            reelUrl = "https://www.instagram.com/reel/EN123/",
+            shortcode = "EN123",
+            preferredLanguage = "en"
+        )
+
+        assertEquals("Recipe extracted from Reel", result.summary)
+    }
 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,7 +30,9 @@ import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.domain.model.ReelNote
 import com.danstudios.reelnotes.ui.theme.*
+import com.danstudios.reelnotes.ui.util.NoteTextFormatter
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NoteCard(
     note: ReelNote,
@@ -154,26 +157,38 @@ fun NoteCard(
                 // Metadata Stats Chips
                 val prepTime = note.structuredData.prepTime
                 val ingCount = note.structuredData.ingredients.size
+                val checkedIngCount = note.structuredData.ingredients.count { it.isChecked }
                 val stepCount = note.structuredData.steps.size
                 val servings = note.structuredData.servings
+                val isFrench = LocalConfiguration.current.locales[0].language.startsWith("fr", ignoreCase = true)
 
                 val hasStats = prepTime != null || ingCount > 0 || stepCount > 0 || servings != null
                 if (hasStats) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         prepTime?.let {
                             MetadataPill(text = it, color = EmeraldLight)
                         }
-                        servings?.let {
-                            val text = if (it.any { c -> c.isLetter() }) it else stringResource(R.string.servings_format, it)
-                            MetadataPill(text = text, color = CyanAccent)
+                        servings?.let { raw ->
+                            val template = stringResource(R.string.servings_format, raw)
+                            val text = NoteTextFormatter.formatServings(raw, isFrench) { count ->
+                                template.replace(raw, count)
+                            }
+                            if (text.isNotBlank()) {
+                                MetadataPill(text = text, color = CyanAccent)
+                            }
                         }
                         if (ingCount > 0) {
-                            MetadataPill(text = stringResource(R.string.ing_count_format, ingCount), color = EmeraldLight)
+                            val ingText = if (checkedIngCount > 0) {
+                                stringResource(R.string.card_checklist_progress, checkedIngCount, ingCount)
+                            } else {
+                                stringResource(R.string.ing_count_format, ingCount)
+                            }
+                            MetadataPill(text = ingText, color = EmeraldLight)
                         }
                         if (stepCount > 0) {
                             MetadataPill(text = stringResource(R.string.steps_count_format, stepCount), color = TextSecondary)
@@ -225,7 +240,7 @@ private fun FavoriteButton(
     ) {
         Icon(
             imageVector = if (isFavorite) Icons.Default.Star else Icons.Outlined.StarBorder,
-            contentDescription = "Favori",
+            contentDescription = stringResource(R.string.content_desc_favorite),
             tint = if (isFavorite) GoldStar else TextSecondary,
             modifier = Modifier.size(16.dp)
         )

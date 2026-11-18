@@ -108,7 +108,9 @@ fun RecipeChecklist(
                         .height(6.dp)
                         .clip(RoundedCornerShape(9999.dp)),
                     color = EmeraldSuccess,
-                    trackColor = DarkSurfaceElevated
+                    trackColor = DarkSurfaceElevated,
+                    gapSize = 0.dp,
+                    drawStopIndicator = {}
                 )
             }
         }

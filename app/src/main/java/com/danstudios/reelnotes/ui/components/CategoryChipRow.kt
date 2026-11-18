@@ -25,6 +25,15 @@ import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.theme.*
 
+internal fun visibleCategories(
+    counts: Map<NoteCategory?, Int>,
+    selectedCategory: NoteCategory?
+): List<NoteCategory> {
+    return NoteCategory.entries.filter { category ->
+        (counts[category] ?: 0) > 0 || selectedCategory == category
+    }
+}
+
 @Composable
 fun CategoryChipRow(
     selectedCategory: NoteCategory?,
@@ -35,6 +44,10 @@ fun CategoryChipRow(
     totalNotesCount: Int = 0,
     modifier: Modifier = Modifier
 ) {
+    val categoriesToShow = remember(categoryCounts, selectedCategory) {
+        visibleCategories(categoryCounts, selectedCategory)
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -55,8 +68,8 @@ fun CategoryChipRow(
             }
         )
 
-        // Specific category chips
-        for (category in NoteCategory.entries) {
+        // Specific non-empty (or currently selected) category chips
+        for (category in categoriesToShow) {
             val isSelected = selectedCategory == category && !onlyFavorites
             val count = categoryCounts[category]
             ModernChip(

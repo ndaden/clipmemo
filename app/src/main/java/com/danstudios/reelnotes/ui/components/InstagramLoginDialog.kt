@@ -6,23 +6,25 @@ import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.danstudios.reelnotes.R
 import com.danstudios.reelnotes.data.network.InstagramSessionManager
+import com.danstudios.reelnotes.ui.theme.*
 
 private const val FALLBACK_MOBILE_LOGIN_USER_AGENT =
     "Mozilla/5.0 (Linux; Android 15; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
@@ -60,9 +62,9 @@ fun InstagramLoginDialog(
     onDismiss: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
+    val withLocalized = rememberLocalizedDialogProviders()
     var isLoading by remember { mutableStateOf(true) }
+    var webViewRef by remember { mutableStateOf<WebView?>(null) }
 
     // Periodically poll for session cookie so we detect login immediately
     // even if Instagram uses AJAX or redirects without triggering full page reload.
@@ -92,48 +94,58 @@ fun InstagramLoginDialog(
                 .padding(16.dp)
         ) {
             Surface(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 6.dp
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(1.dp, DarkBorder, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                color = DarkSurface
             ) {
-                CompositionLocalProvider(
-                    LocalContext provides context,
-                    LocalConfiguration provides configuration
-                ) {
+                withLocalized {
                     Column(modifier = Modifier.fillMaxSize()) {
                         // Header
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.instagram_login_title),
-                                    style = MaterialTheme.typography.titleMedium
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
                                 )
                                 Text(
                                     text = stringResource(R.string.instagram_login_subtitle),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = TextSecondary
+                                )
+                            }
+                            IconButton(onClick = { webViewRef?.reload() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = stringResource(R.string.content_desc_refresh),
+                                    tint = TextSecondary
                                 )
                             }
                             IconButton(onClick = onDismiss) {
-                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.btn_close))
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.btn_close),
+                                    tint = TextPrimary
+                                )
                             }
                         }
 
-                        if (isLoading) {
-                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                        }
+                        HorizontalDivider(color = DarkBorder)
 
                         Box(modifier = Modifier.weight(1f)) {
                             AndroidView(
                                 factory = { ctx ->
                                     WebView(ctx).apply {
+                                        webViewRef = this
                                         layoutParams = android.view.ViewGroup.LayoutParams(
                                             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                                             android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -204,6 +216,16 @@ fun InstagramLoginDialog(
                                 },
                                 modifier = Modifier.fillMaxSize()
                             )
+
+                            if (isLoading) {
+                                LinearProgressIndicator(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .align(Alignment.TopCenter),
+                                    color = NeonViolet,
+                                    trackColor = DarkSurfaceElevated
+                                )
+                            }
                         }
                     }
                 }

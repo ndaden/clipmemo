@@ -25,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.danstudios.reelnotes.ads.InterstitialAdController
 import com.danstudios.reelnotes.ui.navigation.Screen
+import com.danstudios.reelnotes.ui.navigation.safePopBackStack
 import com.danstudios.reelnotes.ui.screens.NoteDetailScreen
 import com.danstudios.reelnotes.ui.screens.NotesListScreen
 import com.danstudios.reelnotes.ui.screens.SettingsScreen
@@ -145,11 +146,11 @@ class MainActivity : ComponentActivity() {
                                         )
                                         if (shouldShowAd) {
                                             InterstitialAdController.showInterstitial(this@MainActivity) {
-                                                navController.popBackStack()
+                                                navController.safePopBackStack()
                                             }
                                         } else {
                                             InterstitialAdController.preload(this@MainActivity)
-                                            navController.popBackStack()
+                                            navController.safePopBackStack()
                                         }
                                     }
                                 )
@@ -158,7 +159,7 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Settings.route) {
                                 SettingsScreen(
                                     viewModel = viewModel,
-                                    onBack = { navController.popBackStack() }
+                                    onBack = { navController.safePopBackStack() }
                                 )
                             }
                         }

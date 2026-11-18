@@ -30,7 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.danstudios.reelnotes.BuildConfig
 import com.danstudios.reelnotes.R
+import com.danstudios.reelnotes.billing.ProOfferState
 import com.danstudios.reelnotes.ui.components.InstagramLoginDialog
 import com.danstudios.reelnotes.ui.theme.*
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
@@ -316,7 +318,7 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = stringResource(R.string.app_version),
+                        text = stringResource(R.string.app_version, BuildConfig.VERSION_NAME),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
@@ -345,7 +347,7 @@ private fun ProSettingsCard(
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
     val isPro by viewModel.isPro.collectAsState()
-    val lifetimePriceString by viewModel.lifetimePriceString.collectAsState()
+    val offerState by viewModel.offerState.collectAsState()
     val isBillingLoading by viewModel.isBillingLoading.collectAsState()
 
     val cardBorder = if (isPro) {
@@ -480,44 +482,101 @@ private fun ProSettingsCard(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                val buttonLabel = if (lifetimePriceString != null) {
-                    stringResource(R.string.settings_pro_btn_buy, lifetimePriceString!!)
-                } else {
-                    stringResource(R.string.settings_pro_btn_loading)
-                }
-
-                Button(
-                    onClick = {
-                        if (activity != null) {
-                            viewModel.purchasePro(activity) { success, err ->
-                                if (success) {
-                                    Toast.makeText(context, context.getString(R.string.toast_purchase_success), Toast.LENGTH_SHORT).show()
-                                } else if (err != null) {
-                                    Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                when (val offer = offerState) {
+                    is ProOfferState.Available -> {
+                        Button(
+                            onClick = {
+                                if (activity != null) {
+                                    viewModel.purchasePro(activity) { success, err ->
+                                        if (success) {
+                                            Toast.makeText(context, context.getString(R.string.toast_purchase_success), Toast.LENGTH_SHORT).show()
+                                        } else if (err != null) {
+                                            Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
                                 }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = NeonViolet,
+                                contentColor = Color.White
+                            ),
+                            enabled = activity != null && !isBillingLoading
+                        ) {
+                            if (isBillingLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.settings_pro_btn_buy, offer.priceString),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NeonViolet,
-                        contentColor = Color.White
-                    ),
-                    enabled = activity != null && !isBillingLoading
-                ) {
-                    if (isBillingLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = buttonLabel,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                    }
+
+                    ProOfferState.Loading -> {
+                        Button(
+                            onClick = {},
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = DarkSurfaceElevated,
+                                contentColor = TextSecondary,
+                                disabledContainerColor = DarkSurfaceElevated,
+                                disabledContentColor = TextSecondary
+                            ),
+                            enabled = false
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = NeonVioletLight,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = stringResource(R.string.settings_pro_btn_loading),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    ProOfferState.Unavailable -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(DarkSurfaceElevated)
+                                .border(1.dp, DarkBorder, RoundedCornerShape(12.dp))
+                                .padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_pro_unavailable),
+                                fontSize = 12.sp,
+                                color = TextSecondary,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedButton(
+                                onClick = { viewModel.retryLoadOfferings() },
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, DarkBorderHover),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonVioletLight)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.settings_pro_btn_retry),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
                     }
                 }
 

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Search
@@ -37,8 +38,10 @@ import com.danstudios.reelnotes.ui.components.InstagramLoginDialog
 import com.danstudios.reelnotes.ui.components.NoteCard
 import com.danstudios.reelnotes.ui.components.OnboardingDialog
 import com.danstudios.reelnotes.ui.components.ProcessingOverlay
+import com.danstudios.reelnotes.ui.components.rememberLocalizedDialogProviders
 import com.danstudios.reelnotes.ui.theme.*
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
+import com.danstudios.reelnotes.ui.viewmodel.UiErrorMessage
 
 @Composable
 fun NotesListScreen(
@@ -53,11 +56,12 @@ fun NotesListScreen(
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val onlyFavorites by viewModel.onlyFavorites.collectAsState()
     val isProcessing by viewModel.isProcessing.collectAsState()
-    val processingStatus by viewModel.processingStatus.collectAsState()
+    val processingStage by viewModel.processingStage.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val showOnboarding by viewModel.showOnboarding.collectAsState()
     val restrictedReelInput by viewModel.restrictedReelInput.collectAsState()
     val isPro by viewModel.isPro.collectAsState()
+    val withLocalized = rememberLocalizedDialogProviders()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var addDialogInitialUrl by remember { mutableStateOf("") }
@@ -78,7 +82,11 @@ fun NotesListScreen(
     }
 
     LaunchedEffect(errorMessage) {
-        errorMessage?.let { msg ->
+        errorMessage?.let { err ->
+            val msg = when (err) {
+                is UiErrorMessage.Resource -> context.getString(err.resId)
+                is UiErrorMessage.Text -> err.value
+            }
             if (msg.contains("Paramètres") || msg.contains("Settings")) {
                 val res = snackbarHostState.showSnackbar(
                     message = msg,
@@ -89,7 +97,7 @@ fun NotesListScreen(
                     onSettingsClick()
                 }
             } else {
-                snackbarHostState.showSnackbar(message = msg, duration = SnackbarDuration.Long)
+                snackbarHostState.showSnackbar(message = msg, duration = SnackbarDuration.Short)
             }
             viewModel.clearError()
         }
@@ -97,8 +105,7 @@ fun NotesListScreen(
 
     Scaffold(
         containerColor = DarkBackground,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -160,7 +167,7 @@ fun NotesListScreen(
                                 IconButton(onClick = { viewModel.setSearchQuery("") }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.btn_close),
                                         tint = TextSecondary,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -180,7 +187,7 @@ fun NotesListScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp)
+                            .defaultMinSize(minHeight = 56.dp)
                     )
                 }
 
@@ -261,6 +268,33 @@ fun NotesListScreen(
                                 textAlign = TextAlign.Center,
                                 lineHeight = 19.sp
                             )
+
+                            if (!onlyFavorites && searchQuery.isBlank() && selectedCategory == null) {
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Button(
+                                    onClick = {
+                                        addDialogInitialUrl = ""
+                                        showAddDialog = true
+                                    },
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = NeonViolet,
+                                        contentColor = Color.White
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.empty_notes_cta),
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 } else {
@@ -285,7 +319,7 @@ fun NotesListScreen(
                 }
             }
 
-            // Bottom Layout: FloatingBottomBar + Adaptive Banner Ad
+            // Bottom Layout: SnackbarHost (above FloatingBottomBar) + FloatingBottomBar + Adaptive Banner Ad
             val selectedTab = if (onlyFavorites) BottomBarTab.FAVORITES else BottomBarTab.NOTES
             Column(
                 modifier = Modifier
@@ -294,6 +328,21 @@ fun NotesListScreen(
                     .navigationBarsPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                ) { data ->
+                    Snackbar(
+                        snackbarData = data,
+                        containerColor = DarkSurfaceElevated,
+                        contentColor = TextPrimary,
+                        actionColor = NeonVioletLight,
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                }
+
                 FloatingBottomBar(
                     selectedTab = selectedTab,
                     onTabSelected = { tab ->
@@ -348,41 +397,50 @@ fun NotesListScreen(
             onDismissRequest = { viewModel.dismissRestrictedReel() },
             containerColor = DarkSurface,
             shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.border(1.dp, DarkBorder, RoundedCornerShape(24.dp)),
             title = {
-                Text(
-                    text = stringResource(R.string.restricted_reel_title),
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
+                withLocalized {
+                    Text(
+                        text = stringResource(R.string.restricted_reel_title),
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                }
             },
             text = {
-                Text(
-                    text = stringResource(R.string.restricted_reel_message),
-                    color = TextSecondary
-                )
+                withLocalized {
+                    Text(
+                        text = stringResource(R.string.restricted_reel_message),
+                        color = TextSecondary
+                    )
+                }
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        pendingRetryAfterLogin = true
-                        showInstagramLoginDialog = true
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = NeonViolet),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(stringResource(R.string.restricted_reel_btn_login))
+                withLocalized {
+                    Button(
+                        onClick = {
+                            pendingRetryAfterLogin = true
+                            showInstagramLoginDialog = true
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = NeonViolet),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(stringResource(R.string.restricted_reel_btn_login))
+                    }
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = {
-                        addDialogInitialUrl = blockedInput
-                        viewModel.dismissRestrictedReel()
-                        showAddDialog = true
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = NeonVioletLight)
-                ) {
-                    Text(stringResource(R.string.restricted_reel_btn_paste))
+                withLocalized {
+                    TextButton(
+                        onClick = {
+                            addDialogInitialUrl = blockedInput
+                            viewModel.dismissRestrictedReel()
+                            showAddDialog = true
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = NeonVioletLight)
+                    ) {
+                        Text(stringResource(R.string.restricted_reel_btn_paste))
+                    }
                 }
             }
         )
@@ -416,6 +474,6 @@ fun NotesListScreen(
     }
 
     if (isProcessing) {
-        ProcessingOverlay(status = processingStatus)
+        ProcessingOverlay(stage = processingStage)
     }
 }

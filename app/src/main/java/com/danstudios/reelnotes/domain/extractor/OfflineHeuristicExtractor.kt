@@ -56,10 +56,12 @@ object OfflineHeuristicExtractor {
         reelUrl: String,
         shortcode: String,
         author: String? = null,
-        thumbnailUrl: String? = null
+        thumbnailUrl: String? = null,
+        preferredLanguage: String = "fr"
     ): ReelNote {
         val lines = caption.lines().map { it.trim() }.filter { it.isNotBlank() }
         val lowerCaption = caption.lowercase()
+        val isFrench = preferredLanguage.startsWith("fr", ignoreCase = true)
 
         // 1. Extract hashtags
         val tags = HASHTAG_REGEX.findAll(caption)
@@ -75,10 +77,10 @@ object OfflineHeuristicExtractor {
 
         // 4. Extract Structured Data (Ingredients, Steps, Takeaways)
         val structuredData = when (category) {
-            NoteCategory.RECIPE -> parseRecipeData(lines, lowerCaption)
-            NoteCategory.WORKOUT -> parseWorkoutData(lines)
-            NoteCategory.TUTORIAL -> parseTutorialData(lines)
-            NoteCategory.TIPS_INFO -> parseTipsData(lines)
+            NoteCategory.RECIPE -> parseRecipeData(lines, isFrench)
+            NoteCategory.WORKOUT -> parseWorkoutData(lines, isFrench)
+            NoteCategory.TUTORIAL -> parseTutorialData(lines, isFrench)
+            NoteCategory.TIPS_INFO -> parseTipsData(lines, isFrench)
             else -> parseGeneralData(lines)
         }
 
@@ -143,7 +145,7 @@ object OfflineHeuristicExtractor {
         return "${category.label} - Reel $shortcode"
     }
 
-    private fun parseRecipeData(lines: List<String>, lowerCaption: String): StructuredNoteData {
+    private fun parseRecipeData(lines: List<String>, isFrench: Boolean): StructuredNoteData {
         val ingredients = mutableListOf<IngredientItem>()
         val steps = mutableListOf<StepItem>()
         val tips = mutableListOf<String>()
@@ -220,14 +222,14 @@ object OfflineHeuristicExtractor {
         }
 
         return StructuredNoteData(
-            summary = "Recette extraite du Reel",
+            summary = if (isFrench) "Recette extraite du Reel" else "Recipe extracted from Reel",
             ingredients = ingredients,
             steps = steps,
             tips = tips
         )
     }
 
-    private fun parseWorkoutData(lines: List<String>): StructuredNoteData {
+    private fun parseWorkoutData(lines: List<String>, isFrench: Boolean): StructuredNoteData {
         val steps = mutableListOf<StepItem>()
         val takeaways = mutableListOf<String>()
 
@@ -242,13 +244,13 @@ object OfflineHeuristicExtractor {
         }
 
         return StructuredNoteData(
-            summary = "Entraînement / Exercices du Reel",
+            summary = if (isFrench) "Entraînement / Exercices du Reel" else "Workout / Exercises from Reel",
             steps = steps,
             keyTakeaways = takeaways
         )
     }
 
-    private fun parseTipsData(lines: List<String>): StructuredNoteData {
+    private fun parseTipsData(lines: List<String>, isFrench: Boolean): StructuredNoteData {
         val takeaways = mutableListOf<String>()
 
         for (line in lines) {
@@ -267,12 +269,12 @@ object OfflineHeuristicExtractor {
         }
 
         return StructuredNoteData(
-            summary = "Points clés et astuces",
+            summary = if (isFrench) "Points clés et astuces" else "Key takeaways & tips",
             keyTakeaways = takeaways
         )
     }
 
-    private fun parseTutorialData(lines: List<String>): StructuredNoteData {
+    private fun parseTutorialData(lines: List<String>, isFrench: Boolean): StructuredNoteData {
         val steps = mutableListOf<StepItem>()
         val takeaways = mutableListOf<String>()
 
@@ -287,7 +289,7 @@ object OfflineHeuristicExtractor {
         }
 
         return StructuredNoteData(
-            summary = "Guide étape par étape",
+            summary = if (isFrench) "Guide étape par étape" else "Step-by-step guide",
             steps = steps,
             keyTakeaways = takeaways
         )

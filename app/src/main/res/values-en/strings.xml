@@ -25,6 +25,7 @@
     <string name="empty_search_title">No results found</string>
     <string name="empty_search_subtitle">Check your spelling or try different keywords.</string>
     <string name="empty_category_title">No notes in this category</string>
+    <string name="empty_notes_cta">Add a Reel</string>
 
     <!-- Add Reel Dialog -->
     <string name="add_reel_title">Add Reel</string>
@@ -35,6 +36,7 @@
     <string name="btn_create_note">Create Note</string>
     <string name="btn_cancel">Cancel</string>
     <string name="content_desc_paste">Paste</string>
+    <string name="toast_clipboard_empty">Clipboard is empty</string>
 
     <!-- Note Detail Screen -->
     <string name="open_on_instagram">Open on Instagram</string>
@@ -43,6 +45,7 @@
     <string name="section_ingredients">Ingredients</string>
     <string name="recipe_progress">Progress</string>
     <string name="items_checked_format">%1$d / %2$d checked</string>
+    <string name="card_checklist_progress">%1$d/%2$d checked</string>
     <string name="ing_count_format">%1$d ingredients</string>
     <string name="steps_count_format">%1$d steps</string>
     <string name="step_title_recipe">Preparation</string>
@@ -58,6 +61,11 @@
     <string name="dialog_delete_title">Delete this note?</string>
     <string name="dialog_delete_message">This action cannot be undone and will permanently delete this note from your device.</string>
     <string name="toast_note_copied">Note copied to clipboard</string>
+    <string name="content_desc_favorite">Favorite</string>
+    <string name="content_desc_copy">Copy</string>
+    <string name="content_desc_share">Share</string>
+    <string name="content_desc_delete">Delete</string>
+    <string name="content_desc_refresh">Refresh</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
@@ -74,7 +82,7 @@
     <string name="lang_french">Français</string>
     <string name="lang_english">English</string>
     <string name="settings_about_title">About ClipMemo</string>
-    <string name="app_version">ClipMemo v1.2.1</string>
+    <string name="app_version">ClipMemo v%1$s</string>
     <string name="settings_about_desc">Turns Instagram Reels into clean, structured notes.</string>
     <string name="toast_login_success">Instagram login successful</string>
     <string name="toast_logged_out">Logged out</string>
@@ -86,9 +94,15 @@
     <string name="overlay_title">Creating Note</string>
     <string name="status_processing_generic">Processing...</string>
     <string name="status_fetching">Fetching Instagram Reel...</string>
+    <string name="status_analyzing_media">AI is watching &amp; listening to the Reel...</string>
+    <string name="status_analyzing_text">AI is analyzing the caption...</string>
+    <string name="status_generating">Building structured note...</string>
+    <string name="status_analyzing_offline">Analyzing locally offline...</string>
     <string name="status_processing">Analyzing video...</string>
     <string name="status_saving">Saving note...</string>
     <string name="default_processing_error">Error processing Reel</string>
+    <string name="error_reel_url_not_found">No valid Instagram Reel link found in input.</string>
+    <string name="error_reel_unavailable">Unable to retrieve this Reel. Check the link or paste its caption manually.</string>
 
     <!-- Launcher & Actions -->
     <string name="error_invalid_url">Invalid or unavailable link</string>
@@ -126,6 +140,8 @@
     <string name="settings_pro_active_desc">All ads have been permanently removed for life. Thank you for your support!</string>
     <string name="settings_pro_btn_buy">Remove ads — %1$s</string>
     <string name="settings_pro_btn_loading">Loading offer...</string>
+    <string name="settings_pro_btn_retry">Retry</string>
+    <string name="settings_pro_unavailable">Offer currently unavailable on Google Play.</string>
     <string name="settings_pro_btn_restore">Restore purchases</string>
     <string name="settings_pro_lifetime_disclaimer">One-time payment, valid for life across all your Android devices connected to your Google Play account.</string>
     <string name="toast_purchase_success">Congratulations! ClipMemo Pro is now active.</string>

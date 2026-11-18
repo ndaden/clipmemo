@@ -2,6 +2,7 @@ package com.danstudios.reelnotes.data.network
 
 import android.content.Context
 import android.util.Log
+import com.danstudios.reelnotes.domain.util.CaptionSanitizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -17,7 +18,8 @@ data class FetchedReelMetadata(
     val mediaBytes: ByteArray? = null,
     val mediaMimeType: String? = null,
     val isAgeRestricted: Boolean = false,
-    val isLoginRequired: Boolean = false
+    val isLoginRequired: Boolean = false,
+    val isUnavailable: Boolean = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -93,14 +95,27 @@ object InstagramMetadataFetcher {
                         mediaBytes = downloadedBytes,
                         mediaMimeType = mimeType,
                         isAgeRestricted = webResult.isAgeRestricted,
-                        isLoginRequired = webResult.isLoginRequired
+                        isLoginRequired = webResult.isLoginRequired,
+                        isUnavailable = webResult.isUnavailable
                     )
+                }
+                if (webResult.isUnavailable) {
+                    // Still allow HTTP embed fallback, and remember unavailability if fallbacks also yield nothing.
+                    val fallbackEmbed = fetchFromEmbedAndPage(shortcode, cleanUrl)
+                    if (fallbackEmbed.caption.isNotBlank() || fallbackEmbed.author != null) {
+                        return@withContext fallbackEmbed
+                    }
+                    return@withContext FetchedReelMetadata(isUnavailable = true)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "WebView extractor encountered error, falling back to HTTP", e)
             }
         }
 
+        return@withContext fetchFromEmbedAndPage(shortcode, cleanUrl)
+    }
+
+    private fun fetchFromEmbedAndPage(shortcode: String, cleanUrl: String): FetchedReelMetadata {
         // 2. Fallback: HTTP embed endpoint
         val embedUrl = "https://www.instagram.com/p/$shortcode/embed/captioned/"
         try {
@@ -115,7 +130,7 @@ object InstagramMetadataFetcher {
                     val html = response.body?.string() ?: ""
                     val parsed = parseHtml(html)
                     if (parsed.caption.isNotBlank() || parsed.author != null) {
-                        return@withContext parsed
+                        return parsed
                     }
                 }
             }
@@ -132,14 +147,14 @@ object InstagramMetadataFetcher {
             client.newCall(req).execute().use { response ->
                 if (response.isSuccessful) {
                     val html = response.body?.string() ?: ""
-                    return@withContext parseHtml(html)
+                    return parseHtml(html)
                 }
             }
         } catch (_: Exception) {
             // Ignore
         }
 
-        FetchedReelMetadata()
+        return FetchedReelMetadata()
     }
 
     /**
@@ -188,14 +203,23 @@ object InstagramMetadataFetcher {
         val isAgeRestricted = html.contains("restrictions d’âge") || html.contains("restrictions d'âge") || html.contains("age-restricted")
         val isLoginRequired = html.contains("Connectez-vous pour continuer") && !html.contains("video_url")
 
-        // 1. Author
+        // 1. Author (ignore CSS/HTML at-rules such as @media, @keyframes, @import)
+        val ignoredAuthors = setOf(
+            "media", "keyframes", "import", "charset", "font", "supports",
+            "page", "namespace", "layer", "scope", "property", "container",
+            "context", "type", "instagram"
+        )
         val ogUrlRegex = Regex("""(?:property=["']og:url["'][^>]*content=["']https://www\.instagram\.com/([^/]+)/reel/|content=["']https://www\.instagram\.com/([^/]+)/reel/[^>]*property=["']og:url["'])""")
         val ogAuthor = ogUrlRegex.find(html)?.let {
             val user = it.groupValues[1].ifEmpty { it.groupValues[2] }
-            if (user.isNotEmpty()) "@$user" else null
+            if (user.isNotEmpty() && user.lowercase() !in ignoredAuthors) "@$user" else null
         }
+        val htmlWithoutStylesAndScripts = html
+            .replace(Regex("""<style\b[^>]*>[\s\S]*?</style>""", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("""<script\b[^>]*>[\s\S]*?</script>""", RegexOption.IGNORE_CASE), "")
         val authorRegex = Regex("""(?:class="FeedbackAuthor-author"[^>]*>|@)([A-Za-z0-9_.]+)""")
-        val authorMatch = authorRegex.find(html)
+        val authorMatch = authorRegex.findAll(htmlWithoutStylesAndScripts)
+            .firstOrNull { it.groupValues[1].lowercase() !in ignoredAuthors }
         val author = ogAuthor ?: authorMatch?.groupValues?.get(1)?.let { "@$it" }
 
         // 2. Thumbnail
@@ -231,6 +255,10 @@ object InstagramMetadataFetcher {
             .replace(Regex("""^[0-9.,]+[KkMm]?\s+likes?,\s+[0-9.,]+[KkMm]?\s+comments?\s+-\s+[A-Za-z0-9_.]+\s+on\s+[^:]+:\s*["“«]"""), "")
             .replace(Regex("""["”»]\.?\s*$"""), "")
             .trim()
+
+        if (CaptionSanitizer.isInstagramBoilerplateOrUnavailable(cleanCaption)) {
+            cleanCaption = ""
+        }
 
         // 4. Title
         val titleRegex = Regex("""<title>([^<]+)</title>""")

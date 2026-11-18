@@ -159,7 +159,7 @@ Extract the information into valid JSON with this exact schema:
   "summary": "1-2 sentence TL;DR of the reel",
   "prepTime": "e.g. 15 min or null",
   "cookTime": "e.g. 25 min or null",
-  "servings": "e.g. 4 personnes or null",
+  "servings": "localized serving label matching Output language (e.g. '4 servings' in English or '4 personnes' in French) or null",
   "ingredients": [
     {"name": "ingredient name", "amount": "number or fraction", "unit": "g, ml, c. à soupe, etc"}
   ],

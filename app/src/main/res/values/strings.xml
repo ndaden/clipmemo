@@ -25,6 +25,7 @@
     <string name="empty_search_title">Aucun résultat trouvé</string>
     <string name="empty_search_subtitle">Vérifiez l\'orthographe ou essayez d\'autres mots-clés.</string>
     <string name="empty_category_title">Aucune note dans cette catégorie</string>
+    <string name="empty_notes_cta">Ajouter un Reel</string>
 
     <!-- Add Reel Dialog -->
     <string name="add_reel_title">Ajouter un Reel</string>
@@ -35,6 +36,7 @@
     <string name="btn_create_note">Créer la fiche</string>
     <string name="btn_cancel">Annuler</string>
     <string name="content_desc_paste">Coller</string>
+    <string name="toast_clipboard_empty">Le presse-papier est vide</string>
 
     <!-- Note Detail Screen -->
     <string name="open_on_instagram">Ouvrir sur Instagram</string>
@@ -43,6 +45,7 @@
     <string name="section_ingredients">Ingrédients</string>
     <string name="recipe_progress">Progression</string>
     <string name="items_checked_format">%1$d / %2$d cochés</string>
+    <string name="card_checklist_progress">%1$d/%2$d cochés</string>
     <string name="ing_count_format">%1$d ingrédients</string>
     <string name="steps_count_format">%1$d étapes</string>
     <string name="step_title_recipe">Préparation</string>
@@ -58,6 +61,11 @@
     <string name="dialog_delete_title">Supprimer cette note ?</string>
     <string name="dialog_delete_message">Cette action est irréversible et supprimera définitivement cette fiche de votre appareil.</string>
     <string name="toast_note_copied">Note copiée dans le presse-papier</string>
+    <string name="content_desc_favorite">Favori</string>
+    <string name="content_desc_copy">Copier</string>
+    <string name="content_desc_share">Partager</string>
+    <string name="content_desc_delete">Supprimer</string>
+    <string name="content_desc_refresh">Actualiser</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Paramètres</string>
@@ -74,7 +82,7 @@
     <string name="lang_french">Français</string>
     <string name="lang_english">English</string>
     <string name="settings_about_title">À propos de ClipMemo</string>
-    <string name="app_version">ClipMemo v1.2.1</string>
+    <string name="app_version">ClipMemo v%1$s</string>
     <string name="settings_about_desc">Transforme les Reels Instagram en fiches structurées et pratiques.</string>
     <string name="toast_login_success">Connexion Instagram réussie</string>
     <string name="toast_logged_out">Déconnexion effectuée</string>
@@ -86,9 +94,15 @@
     <string name="overlay_title">Création de la fiche</string>
     <string name="status_processing_generic">Traitement en cours...</string>
     <string name="status_fetching">Récupération du Reel Instagram...</string>
+    <string name="status_analyzing_media">L\'IA écoute et analyse la vidéo du Reel...</string>
+    <string name="status_analyzing_text">L\'IA analyse les instructions textuelles...</string>
+    <string name="status_generating">Génération des notes structurées...</string>
+    <string name="status_analyzing_offline">Analyse locale hors-ligne...</string>
     <string name="status_processing">Analyse de la vidéo...</string>
     <string name="status_saving">Enregistrement de la fiche...</string>
     <string name="default_processing_error">Erreur lors du traitement du Reel</string>
+    <string name="error_reel_url_not_found">Lien Instagram Reel introuvable dans le texte saisi.</string>
+    <string name="error_reel_unavailable">Impossible de récupérer ce Reel. Vérifiez le lien ou collez sa légende manuellement.</string>
 
     <!-- Launcher & Actions -->
     <string name="error_invalid_url">Lien invalide ou indisponible</string>
@@ -126,6 +140,8 @@
     <string name="settings_pro_active_desc">Toutes les publicités ont été définitivement supprimées à vie. Merci pour votre soutien !</string>
     <string name="settings_pro_btn_buy">Supprimer les pubs — %1$s</string>
     <string name="settings_pro_btn_loading">Chargement de l\'offre...</string>
+    <string name="settings_pro_btn_retry">Réessayer</string>
+    <string name="settings_pro_unavailable">Offre indisponible pour le moment sur Google Play.</string>
     <string name="settings_pro_btn_restore">Restaurer mes achats</string>
     <string name="settings_pro_lifetime_disclaimer">Paiement unique valable à vie sur tous vos appareils Android connectés à votre compte Google Play.</string>
     <string name="toast_purchase_success">Félicitations ! ClipMemo Pro est désormais activé.</string>

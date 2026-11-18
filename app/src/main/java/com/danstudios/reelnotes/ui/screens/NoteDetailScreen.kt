@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -39,10 +40,13 @@ import com.danstudios.reelnotes.ads.AdaptiveBannerAd
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.ui.components.RecipeChecklist
 import com.danstudios.reelnotes.ui.components.StepList
+import com.danstudios.reelnotes.ui.components.rememberLocalizedDialogProviders
 import com.danstudios.reelnotes.ui.theme.*
+import com.danstudios.reelnotes.ui.util.NoteTextFormatter
 import com.danstudios.reelnotes.ui.util.UrlLauncher
 import com.danstudios.reelnotes.ui.viewmodel.ReelNotesViewModel
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NoteDetailScreen(
     noteId: Long,
@@ -52,11 +56,20 @@ fun NoteDetailScreen(
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
     val note by viewModel.getNoteById(noteId).collectAsState(initial = null)
+    val isPro by viewModel.isPro.collectAsState()
+    val isFrench = LocalConfiguration.current.locales[0].language.startsWith("fr", ignoreCase = true)
+    val withLocalized = rememberLocalizedDialogProviders()
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showRawCaption by remember { mutableStateOf(false) }
 
-    BackHandler(onBack = onBack)
+    BackHandler {
+        if (showDeleteConfirm) {
+            showDeleteConfirm = false
+        } else {
+            onBack()
+        }
+    }
 
     if (note == null) {
         Box(
@@ -268,10 +281,10 @@ fun NoteDetailScreen(
                 val data = currentNote.structuredData
                 val hasTimes = data.prepTime != null || data.cookTime != null || data.servings != null
                 if (hasTimes) {
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         data.prepTime?.let {
                             Box(
@@ -305,21 +318,26 @@ fun NoteDetailScreen(
                                 )
                             }
                         }
-                        data.servings?.let {
-                            val text = if (it.any { c -> c.isLetter() }) it else stringResource(R.string.servings_format, it)
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(DarkSurfaceElevated)
-                                    .border(1.dp, DarkBorder, RoundedCornerShape(10.dp))
-                                    .padding(horizontal = 10.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = CyanAccent
-                                )
+                        data.servings?.let { raw ->
+                            val template = stringResource(R.string.servings_format, raw)
+                            val text = NoteTextFormatter.formatServings(raw, isFrench) { count ->
+                                template.replace(raw, count)
+                            }
+                            if (text.isNotBlank()) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(DarkSurfaceElevated)
+                                        .border(1.dp, DarkBorder, RoundedCornerShape(10.dp))
+                                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Text(
+                                        text = text,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = CyanAccent
+                                    )
+                                }
                             }
                         }
                     }
@@ -458,9 +476,10 @@ fun NoteDetailScreen(
 
                 // Tags
                 if (currentNote.tags.isNotEmpty()) {
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         currentNote.tags.forEach { tag ->
                             Box(
@@ -535,61 +554,75 @@ fun NoteDetailScreen(
             }
         }
 
-        // Circular Glass Action Buttons overlaying top
-        Row(
+        // Top subtle scrim + Circular Glass Action Buttons overlaying top
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            GlassActionButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Retour",
-                onClick = onBack
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Favorite
-                GlassActionButton(
-                    icon = if (currentNote.isFavorite) Icons.Default.Star else Icons.Outlined.StarBorder,
-                    contentDescription = "Favori",
-                    tint = if (currentNote.isFavorite) GoldStar else TextPrimary,
-                    onClick = { viewModel.toggleFavorite(currentNote) }
-                )
-
-                // Copy Markdown
-                GlassActionButton(
-                    icon = Icons.Default.ContentCopy,
-                    contentDescription = "Copier",
-                    onClick = {
-                        clipboardManager.setText(AnnotatedString(currentNote.markdownContent))
-                        Toast.makeText(context, context.getString(R.string.toast_note_copied), Toast.LENGTH_SHORT).show()
-                    }
-                )
-
-                // Share
-                GlassActionButton(
-                    icon = Icons.Default.Share,
-                    contentDescription = "Partager",
-                    onClick = {
-                        UrlLauncher.shareText(
-                            context = context,
-                            title = currentNote.title,
-                            text = currentNote.markdownContent,
-                            chooserTitle = context.getString(R.string.share_note_title)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            DarkBackground.copy(alpha = if (hasThumbnail) 0.55f else 0.94f),
+                            DarkBackground.copy(alpha = if (hasThumbnail) 0.25f else 0.72f),
+                            Color.Transparent
                         )
-                    }
+                    )
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                GlassActionButton(
+                    icon = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.btn_back),
+                    onClick = onBack
                 )
 
-                // Delete
-                GlassActionButton(
-                    icon = Icons.Default.Delete,
-                    contentDescription = "Supprimer",
-                    tint = ErrorRed,
-                    onClick = { showDeleteConfirm = true }
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Favorite
+                    GlassActionButton(
+                        icon = if (currentNote.isFavorite) Icons.Default.Star else Icons.Outlined.StarBorder,
+                        contentDescription = stringResource(R.string.content_desc_favorite),
+                        tint = if (currentNote.isFavorite) GoldStar else TextPrimary,
+                        onClick = { viewModel.toggleFavorite(currentNote) }
+                    )
+
+                    // Copy Markdown
+                    GlassActionButton(
+                        icon = Icons.Default.ContentCopy,
+                        contentDescription = stringResource(R.string.content_desc_copy),
+                        onClick = {
+                            clipboardManager.setText(AnnotatedString(currentNote.markdownContent))
+                            Toast.makeText(context, context.getString(R.string.toast_note_copied), Toast.LENGTH_SHORT).show()
+                        }
+                    )
+
+                    // Share
+                    GlassActionButton(
+                        icon = Icons.Default.Share,
+                        contentDescription = stringResource(R.string.content_desc_share),
+                        onClick = {
+                            UrlLauncher.shareText(
+                                context = context,
+                                title = currentNote.title,
+                                text = currentNote.markdownContent,
+                                chooserTitle = context.getString(R.string.share_note_title)
+                            )
+                        }
+                    )
+
+                    // Delete
+                    GlassActionButton(
+                        icon = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.content_desc_delete),
+                        tint = ErrorRed,
+                        onClick = { showDeleteConfirm = true }
+                    )
+                }
             }
         }
 
@@ -600,7 +633,7 @@ fun NoteDetailScreen(
                 .fillMaxWidth()
                 .navigationBarsPadding()
         ) {
-            AdaptiveBannerAd()
+            AdaptiveBannerAd(isPro = isPro)
         }
     }
 
@@ -612,38 +645,46 @@ fun NoteDetailScreen(
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier.border(1.dp, DarkBorder, RoundedCornerShape(20.dp)),
             title = {
-                Text(
-                    text = stringResource(R.string.dialog_delete_title),
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
+                withLocalized {
+                    Text(
+                        text = stringResource(R.string.dialog_delete_title),
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                }
             },
             text = {
-                Text(
-                    text = stringResource(R.string.dialog_delete_message),
-                    color = TextSecondary,
-                    fontSize = 14.sp
-                )
+                withLocalized {
+                    Text(
+                        text = stringResource(R.string.dialog_delete_message),
+                        color = TextSecondary,
+                        fontSize = 14.sp
+                    )
+                }
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showDeleteConfirm = false
-                        viewModel.deleteNote(currentNote.id)
-                        onBack()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text(stringResource(R.string.btn_delete), fontWeight = FontWeight.Bold, color = Color.White)
+                withLocalized {
+                    Button(
+                        onClick = {
+                            showDeleteConfirm = false
+                            viewModel.deleteNote(currentNote.id)
+                            onBack()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(stringResource(R.string.btn_delete), fontWeight = FontWeight.Bold, color = Color.White)
+                    }
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showDeleteConfirm = false },
-                    colors = ButtonDefaults.textButtonColors(contentColor = TextSecondary)
-                ) {
-                    Text(stringResource(R.string.btn_cancel))
+                withLocalized {
+                    TextButton(
+                        onClick = { showDeleteConfirm = false },
+                        colors = ButtonDefaults.textButtonColors(contentColor = TextSecondary)
+                    ) {
+                        Text(stringResource(R.string.btn_cancel))
+                    }
                 }
             }
         )

@@ -118,4 +118,20 @@ class InstagramMetadataFetcherTest {
         val exception = InstagramRestrictedException("Ce Reel nécessite d'être connecté à Instagram.")
         assertEquals("Ce Reel nécessite d'être connecté à Instagram.", exception.message)
     }
+
+    @Test
+    fun `parseHtml ignores CSS at-rules like media and keyframes when extracting author`() {
+        val htmlWithCss = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>@media (max-width: 600px) { body { color: #000; } } @keyframes fade { from { opacity: 0; } }</style>
+            </head>
+            <body><p>Recipe caption without author</p></body>
+            </html>
+        """.trimIndent()
+
+        val meta = InstagramMetadataFetcher.parseHtml(htmlWithCss)
+        assertNull(meta.author)
+    }
 }

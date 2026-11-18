@@ -37,6 +37,9 @@ open class RevenueCatBillingManager(
     private val _lifetimePriceString = MutableStateFlow<String?>(null)
     override val lifetimePriceString: StateFlow<String?> = _lifetimePriceString.asStateFlow()
 
+    private val _offerState = MutableStateFlow<ProOfferState>(ProOfferState.Loading)
+    override val offerState: StateFlow<ProOfferState> = _offerState.asStateFlow()
+
     private val _isBillingLoading = MutableStateFlow(false)
     override val isBillingLoading: StateFlow<Boolean> = _isBillingLoading.asStateFlow()
 
@@ -46,6 +49,7 @@ open class RevenueCatBillingManager(
         val apiKey = BuildConfig.REVENUECAT_PUBLIC_KEY
         if (apiKey.isBlank()) {
             Log.w(TAG, "RevenueCat API key is empty, skipping Purchases configuration")
+            _offerState.value = ProOfferState.Unavailable
             return
         }
 
@@ -68,6 +72,13 @@ open class RevenueCatBillingManager(
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize RevenueCat", e)
+            _offerState.value = ProOfferState.Unavailable
+        }
+    }
+
+    override fun refreshOfferings() {
+        scope.launch {
+            loadOfferings()
         }
     }
 
@@ -82,7 +93,11 @@ open class RevenueCatBillingManager(
     }
 
     open suspend fun loadOfferings() {
-        if (!Purchases.isConfigured) return
+        if (!Purchases.isConfigured) {
+            _offerState.value = ProOfferState.Unavailable
+            return
+        }
+        _offerState.value = ProOfferState.Loading
         try {
             val offerings = Purchases.sharedInstance.awaitOfferings()
             val current = offerings.current
@@ -90,8 +105,14 @@ open class RevenueCatBillingManager(
             cachedLifetimePackage = lifetimePkg
             val formattedPrice = lifetimePkg?.product?.price?.formatted
             _lifetimePriceString.value = formattedPrice
+            _offerState.value = if (!formattedPrice.isNullOrBlank()) {
+                ProOfferState.Available(formattedPrice)
+            } else {
+                ProOfferState.Unavailable
+            }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to fetch offerings: ${e.message}")
+            _offerState.value = ProOfferState.Unavailable
         }
     }
 

@@ -28,7 +28,9 @@ data class WebViewExtractionResult(
     val videoUrl: String? = null,
     val audioUrl: String? = null,
     val isAgeRestricted: Boolean = false,
-    val isLoginRequired: Boolean = false
+    val isLoginRequired: Boolean = false,
+    val isUnavailable: Boolean = false,
+    val isCookieWallOnly: Boolean = false
 )
 
 object InstagramWebViewExtractor {
@@ -63,7 +65,7 @@ object InstagramWebViewExtractor {
             Log.d(TAG, "Starting extraction for shortcode: $shortcode, url: $cleanUrl")
             webView = WebView(context).apply {
                 layout(0, 0, 1080, 1920)
-                alpha = 0.01f // Attached to window for full media engine activation, invisible to user
+                alpha = 1f // Placed behind MainActivity's opaque Surface so Chromium keeps media active with zero visual bleed
                 settings.apply {
                     javaScriptEnabled = true
                     domStorageEnabled = true
@@ -125,9 +127,9 @@ object InstagramWebViewExtractor {
                                         videoUrl = effectiveVideo,
                                         audioUrl = effectiveAudio
                                     )
-                                    Log.d(TAG, "Interim extraction: author=${finalRes.author}, capLen=${finalRes.caption.length}, hasAudio=${finalRes.audioUrl != null}, hasVideo=${finalRes.videoUrl != null}")
+                                    Log.d(TAG, "Interim extraction: author=${finalRes.author}, capLen=${finalRes.caption.length}, hasAudio=${finalRes.audioUrl != null}, hasVideo=${finalRes.videoUrl != null}, unavailable=${finalRes.isUnavailable}, cookieWall=${finalRes.isCookieWallOnly}")
                                     if ((finalRes.caption.isNotBlank() && (finalRes.videoUrl != null || finalRes.audioUrl != null)) ||
-                                        finalRes.isAgeRestricted || finalRes.isLoginRequired
+                                        finalRes.isAgeRestricted || finalRes.isLoginRequired || finalRes.isUnavailable || finalRes.isCookieWallOnly
                                     ) {
                                         if (!resultDeferred.isCompleted) {
                                             resultDeferred.complete(finalRes)
@@ -145,9 +147,10 @@ object InstagramWebViewExtractor {
                 }
             }
 
-            // Attach to decorView so Chromium treats document as active and visible
+            // Attach behind content view (index 0) so Chromium treats document as active/visible
+            // while MainActivity's opaque background completely hides it from the user.
             try {
-                decorView?.addView(webView, ViewGroup.LayoutParams(1080, 1920))
+                decorView?.addView(webView, 0, ViewGroup.LayoutParams(1080, 1920))
             } catch (e: Exception) {
                 Log.w(TAG, "Could not attach WebView to DecorView: ${e.message}")
             }
@@ -239,8 +242,22 @@ object InstagramWebViewExtractor {
                                           bodyText.indexOf('Restricted Content') !== -1;
                     
                     var isLoginRequired = (bodyText.indexOf('Connectez-vous pour continuer') !== -1 ||
-                                           bodyText.indexOf('Log in to continue') !== -1) && 
+                                           bodyText.indexOf('Log in to continue') !== -1) &&
                                           !document.querySelector('video');
+
+                    var lowerBody = bodyText.toLowerCase();
+                    var isUnavailable = (lowerBody.indexOf("sorry, this page isn't available") !== -1 ||
+                                         lowerBody.indexOf("sorry, this page isn\u2019t available") !== -1 ||
+                                         lowerBody.indexOf("cette page n\u2019est malheureusement pas disponible") !== -1 ||
+                                         lowerBody.indexOf("cette page n'est malheureusement pas disponible") !== -1 ||
+                                         lowerBody.indexOf("this content isn't available") !== -1 ||
+                                         lowerBody.indexOf("this content isn\u2019t available") !== -1) &&
+                                        !document.querySelector('video');
+
+                    var isCookieWallOnly = (lowerBody.indexOf("allow the use of cookies from instagram") !== -1 ||
+                                            lowerBody.indexOf("autoriser l\u2019utilisation des cookies") !== -1 ||
+                                            lowerBody.indexOf("autoriser l'utilisation des cookies") !== -1) &&
+                                           !document.querySelector('video');
 
                     // Find container specifically associated with target shortcode
                     var targetContainer = null;
@@ -405,6 +422,8 @@ object InstagramWebViewExtractor {
                     return JSON.stringify({
                         isAgeRestricted: isAgeRestricted,
                         isLoginRequired: isLoginRequired,
+                        isUnavailable: isUnavailable,
+                        isCookieWallOnly: isCookieWallOnly,
                         author: author,
                         caption: caption,
                         bodyText: bodyText,
@@ -456,7 +475,9 @@ object InstagramWebViewExtractor {
                     videoUrl = optNullableString("videoUrl"),
                     audioUrl = optNullableString("audioUrl"),
                     isAgeRestricted = obj.optBoolean("isAgeRestricted", false),
-                    isLoginRequired = obj.optBoolean("isLoginRequired", false)
+                    isLoginRequired = obj.optBoolean("isLoginRequired", false),
+                    isUnavailable = obj.optBoolean("isUnavailable", false),
+                    isCookieWallOnly = obj.optBoolean("isCookieWallOnly", false)
                 )
                 onResult(result)
             } catch (e: Exception) {

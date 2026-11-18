@@ -2,21 +2,30 @@ package com.danstudios.reelnotes.ui.viewmodel
 
 import android.app.Activity
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.danstudios.reelnotes.ads.AdPlacementPolicy
 import com.danstudios.reelnotes.billing.BillingManager
+import com.danstudios.reelnotes.billing.ProOfferState
 import com.danstudios.reelnotes.data.local.PreferencesManager
-import com.danstudios.reelnotes.data.network.GeminiSummarizer
 import com.danstudios.reelnotes.data.network.InstagramSessionManager
 import com.danstudios.reelnotes.data.repository.ReelNoteRepository
+import com.danstudios.reelnotes.domain.extractor.ExtractionErrorType
 import com.danstudios.reelnotes.domain.extractor.InstagramRestrictedException
+import com.danstudios.reelnotes.domain.extractor.ProcessingStage
+import com.danstudios.reelnotes.domain.extractor.ReelExtractionException
 import com.danstudios.reelnotes.domain.extractor.ReelExtractionPipeline
 import com.danstudios.reelnotes.domain.model.NoteCategory
 import com.danstudios.reelnotes.domain.model.ReelNote
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
+sealed class UiErrorMessage {
+    data class Resource(@StringRes val resId: Int) : UiErrorMessage()
+    data class Text(val value: String) : UiErrorMessage()
+}
 
 class ReelNotesViewModel(
     private val repository: ReelNoteRepository,
@@ -26,6 +35,7 @@ class ReelNotesViewModel(
 
     val isPro: StateFlow<Boolean> = billingManager?.isPro ?: MutableStateFlow(preferences.isPro).asStateFlow()
     val lifetimePriceString: StateFlow<String?> = billingManager?.lifetimePriceString ?: MutableStateFlow<String?>(null).asStateFlow()
+    val offerState: StateFlow<ProOfferState> = billingManager?.offerState ?: MutableStateFlow<ProOfferState>(ProOfferState.Unavailable).asStateFlow()
     val isBillingLoading: StateFlow<Boolean> = billingManager?.isBillingLoading ?: MutableStateFlow(false).asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
@@ -40,11 +50,11 @@ class ReelNotesViewModel(
     private val _isProcessing = MutableStateFlow(false)
     val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
 
-    private val _processingStatus = MutableStateFlow("")
-    val processingStatus: StateFlow<String> = _processingStatus.asStateFlow()
+    private val _processingStage = MutableStateFlow<ProcessingStage?>(null)
+    val processingStage: StateFlow<ProcessingStage?> = _processingStage.asStateFlow()
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+    private val _errorMessage = MutableStateFlow<UiErrorMessage?>(null)
+    val errorMessage: StateFlow<UiErrorMessage?> = _errorMessage.asStateFlow()
 
     private val _preferredLanguage = MutableStateFlow(preferences.preferredLanguage)
     val preferredLanguage: StateFlow<String> = _preferredLanguage.asStateFlow()
@@ -94,10 +104,12 @@ class ReelNotesViewModel(
                 true
             } else {
                 note.title.contains(query, ignoreCase = true) ||
-                note.summary.contains(query, ignoreCase = true) ||
-                note.author?.contains(query, ignoreCase = true) == true ||
-                note.tags.any { it.contains(query, ignoreCase = true) } ||
-                note.rawCaption.contains(query, ignoreCase = true)
+                    note.summary.contains(query, ignoreCase = true) ||
+                    note.author?.contains(query, ignoreCase = true) == true ||
+                    note.tags.any { it.contains(query, ignoreCase = true) } ||
+                    note.rawCaption.contains(query, ignoreCase = true) ||
+                    note.structuredData.ingredients.any { it.name.contains(query, ignoreCase = true) } ||
+                    note.structuredData.steps.any { it.instruction.contains(query, ignoreCase = true) }
             }
             matchesCategory && matchesFav && matchesQuery
         }
@@ -239,40 +251,44 @@ class ReelNotesViewModel(
 
         viewModelScope.launch {
             _isProcessing.value = true
-            _processingStatus.value = "Récupération du Reel Instagram..."
+            _processingStage.value = ProcessingStage.FETCHING
             try {
                 val note = ReelExtractionPipeline.processReel(
                     sharedInput = sharedText,
                     preferredLanguage = preferences.preferredLanguage,
                     manualCaption = manualCaption,
                     context = context,
-                    onProgressUpdate = { status ->
-                        _processingStatus.value = status
+                    onStageUpdate = { stage ->
+                        _processingStage.value = stage
                     }
                 )
 
-                _processingStatus.value = "Enregistrement dans vos notes..."
+                _processingStage.value = ProcessingStage.SAVING
                 val savedId = repository.saveNote(note)
                 recordNoteCreated()
                 _newlyCreatedNoteId.emit(savedId)
                 onFinished?.invoke(savedId)
             } catch (e: InstagramRestrictedException) {
-                // Pas de snackbar : l'ecran propose un choix explicite entre
-                // connexion Instagram et collage manuel de la legende.
-                // Si l'utilisateur avait deja fourni une legende, le probleme
-                // ne vient pas de l'acces : on retombe sur un message simple.
                 if (manualCaption.isNullOrBlank()) {
                     _restrictedReelInput.value = sharedText
                 } else {
-                    _errorMessage.value = e.message
+                    _errorMessage.value = e.message?.let { UiErrorMessage.Text(it) }
+                        ?: UiErrorMessage.Resource(ExtractionErrorType.REEL_UNAVAILABLE.messageRes)
                 }
+            } catch (e: ReelExtractionException) {
+                _errorMessage.value = UiErrorMessage.Resource(e.errorType.messageRes)
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Erreur lors du traitement du Reel"
+                _errorMessage.value = e.message?.takeIf { it.isNotBlank() }?.let { UiErrorMessage.Text(it) }
+                    ?: UiErrorMessage.Resource(ExtractionErrorType.PROCESSING_FAILED.messageRes)
             } finally {
                 _isProcessing.value = false
-                _processingStatus.value = ""
+                _processingStage.value = null
             }
         }
+    }
+
+    fun retryLoadOfferings() {
+        billingManager?.refreshOfferings()
     }
 
     fun purchasePro(activity: Activity, onComplete: ((Boolean, String?) -> Unit)? = null) {

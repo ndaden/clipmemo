@@ -17,6 +17,11 @@ class FakeBillingManager(
     val _lifetimePriceString = MutableStateFlow<String?>(initialPrice)
     override val lifetimePriceString: StateFlow<String?> = _lifetimePriceString.asStateFlow()
 
+    val _offerState = MutableStateFlow<ProOfferState>(
+        if (initialPrice != null) ProOfferState.Available(initialPrice) else ProOfferState.Unavailable
+    )
+    override val offerState: StateFlow<ProOfferState> = _offerState.asStateFlow()
+
     val _isBillingLoading = MutableStateFlow(false)
     override val isBillingLoading: StateFlow<Boolean> = _isBillingLoading.asStateFlow()
 
@@ -24,6 +29,8 @@ class FakeBillingManager(
     var restoreResult: Result<Boolean> = Result.success(true)
 
     override fun initialize(context: Context) {}
+
+    override fun refreshOfferings() {}
 
     override suspend fun refreshCustomerInfo() {}
 

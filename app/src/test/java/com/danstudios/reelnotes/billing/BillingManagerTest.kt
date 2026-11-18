@@ -49,4 +49,13 @@ class BillingManagerTest {
         val result = billingManager.restorePurchases()
         assertTrue(result.isFailure)
     }
+
+    @Test
+    fun `offerState transitions to Unavailable when Purchases is not configured`() = runTest(testDispatcher) {
+        val mockPrefs = PreferencesManager(null)
+        val billingManager = RevenueCatBillingManager(mockPrefs, this)
+
+        billingManager.loadOfferings()
+        assertTrue(billingManager.offerState.value is ProOfferState.Unavailable)
+    }
 }
